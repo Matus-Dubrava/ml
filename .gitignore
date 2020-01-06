@@ -1,3 +1,5 @@
 datasets/
 venv/
 basics/.ipynb_checkpoints/
+pandas/.ipynb_checkpoints/
+misc/
