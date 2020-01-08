@@ -2,4 +2,5 @@ datasets/
 venv/
 basics/.ipynb_checkpoints/
 pandas/.ipynb_checkpoints/
+matplotlib/.ipynb_checkpoints/
 misc/
