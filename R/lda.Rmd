@@ -1,0 +1,41 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+library(MASS)
+library(ISLR)
+```
+
+```{r}
+head(Smarket)
+```
+```{r}
+train = Smarket$Year != 2005
+Smarket.2005 = Smarket[!train,]
+Direction.2005 = Smarket$Direction[!train]
+```
+
+```{r}
+lda.fit = lda(Direction~Lag1+Lag2, data=Smarket, subset=train)
+lda.fit
+```
+
+```{r}
+lda.pred = predict(lda.fit, Smarket.2005)
+names(lda.pred)
+```
+```{r}
+lda.class = lda.pred$class
+table(lda.class, Direction.2005)
+```
+```{r}
+print(sum(lda.pred$posterior[,1] >= 0.5))
+print(sum(lda.pred$posterior[,1] < 0.5))
+```
+
+Let's increase the threshold to see how many days there are when the model predicts the market to go up with the probability of at least 90%.
+```{r}
+sum(lda.pred$posterior[,1] >= 0.9)
+```
+Apparently, our model was never cetrain with the 90% probability or more that the marker will go up at any given day.

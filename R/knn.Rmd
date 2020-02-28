@@ -1,0 +1,44 @@
+---
+title: "KNN"
+output: html_notebook
+---
+
+```{r}
+library(MASS)
+library(class)
+attach(Smarket)
+
+head(Smarket)
+```
+
+```{r}
+train = Year != 2005
+train.X = cbind(Lag1, Lag2)[train,]
+train.y = Direction[train]
+test.X = cbind(Lag1, Lag2)[!train,]
+test.y = Direction[!train]
+
+set.seed(1)
+knn.pred = knn(train.X, test.X, train.y, k=1)
+table(knn.pred, test.y)
+```
+```{r}
+mean(knn.pred == test.y)
+```
+
+Trying KNN with K = 3.
+```{r}
+knn.pred = knn(train.X, test.X, train.y, k=3)
+table(knn.pred, test.y)
+```
+
+```{r}
+mean(knn.pred == test.y)
+```
+```{r}
+for (i in c(1:10)) {
+  pred = knn(train.X, test.X, train.y, k=i)
+  print(mean(pred == test.y))
+}
+```
+

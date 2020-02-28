@@ -1,0 +1,102 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(ISLR)
+
+head(Smarket)
+```
+```{r}
+cor(Smarket[, -9])
+```
+```{r}
+plot(Smarket$Volume)
+```
+```{r}
+glm.fits = glm(Direction~Lag1+Lag2+Lag3+Lag4+Lag5+Volume, data=Smarket, family=binomial)
+summary(glm.fits)
+```
+```{r}
+coef(glm.fits)
+```
+```{r}
+summary(glm.fits)$coef
+```
+```{r}
+# pulling out just the p-values 
+summary(glm.fits)$coef[, 4]
+```
+```{r}
+glm.probs = predict(glm.fits, type="response")
+glm.probs[1:10]
+```
+```{r}
+contrasts(Smarket$Direction)
+```
+```{r}
+glm.pred = rep("Down", 1250)
+glm.pred[glm.probs > .5] = "Up"
+glm.pred[1:10]
+```
+
+```{r}
+table(glm.pred, Smarket$Direction)
+```
+
+Training accuracy (based on the above confusion matrix): (TP + TN) / ALL
+```{r}
+(145 + 507) / 1250
+``` 
+
+Splitting data intro training and the test set. Years 2001 through 2004 are used for training and the remaining year - 2005 - is kept for testing.
+```{r}
+train = (Smarket$Year < 2005)
+Smarket.2005 = Smarket[!train,]
+dim(Smarket.2005)
+```
+```{r}
+Direction.2005 = Smarket$Direction[!train]
+```
+
+Fitting logistic regression only to the training set.
+```{r}
+glm.fits = glm(Direction~Lag1+Lag2+Lag3+Lag4+Lag5+Volume, family=binomial,
+               data=Smarket, subset=train)
+glm.probs = predict(glm.fits, Smarket.2005, type="response")
+glm.probs[1:10]
+```
+```{r}
+glm.pred = rep("Down", 252)
+glm.pred[glm.probs > .5] = "Up"
+table(glm.pred, Direction.2005)
+```
+
+Accuracy on the test set:
+```{r}
+(77 + 44) / 252
+```
+
+Fitting logistic regression on Lag1 and Lag2 only, since they have the smallest p-value
+```{r}
+glm.fits = glm(Direction~Lag1+Lag2, data=Smarket, family="binomial",
+               subset=train)
+glm.probs = predict(glm.fits, Smarket.2005, type="response")
+glm.pred = rep("Down", 252)
+glm.pred[glm.probs
+         > .5] = "Up"
+table(glm.pred, Direction.2005)
+```
+
+Accuracy on the test set, using Lag1 and Lag2 predictors
+```{r}
+(35 + 106) / 252
+```
+
+Making prediction for new observations
+```{r}
+newdata = data.frame(Lag1=c(1.2, 1.5), Lag2=c(1.1, -0.8))
+predict(glm.fits, newdata, type="response")
+```
+
