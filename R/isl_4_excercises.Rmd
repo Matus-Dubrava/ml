@@ -1,0 +1,100 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(ISLR)
+library(boot)
+
+head(Default)
+```
+
+```{r}
+train = sample(10000, 5000, replace=F)
+glm.fit = glm(default~income+balance, family="binomial", data=Default,
+              subset=train)
+glm.probs = predict(glm.fit, Default[-train, ])
+glm.pred = rep("No", length(glm.probs))
+glm.pred[glm.probs > 0.5] = "Yes"
+table(glm.pred, Default[-train, 1])
+```
+
+```{r}
+# accuracy on the test set
+mean(glm.pred == Default[-train, 1])
+```
+
+running the above process 3 times to get more accurate measure
+```{r}
+accuracies = rep(0, 3)
+for (i in 1:3) {
+  train = sample(10000, 5000, replace=F)
+  glm.fit = glm(default~income+balance, data=Default, family="binomial",
+                subset=train)
+  glm.probs = predict(glm.fit, Default[-train, ])
+  glm.pred = rep("No", 5000)
+  glm.pred[glm.probs > 0.5] = "Yes"
+  accuracies[i] = mean(glm.pred == Default[-train, 1])
+}
+mean(accuracies)
+```
+
+including the student dummy variable in the model
+```{r}
+accuracies = rep(0, 3)
+for (i in 1:3) {
+  train = sample(10000, 5000, replace=F)
+  glm.fit = glm(default~income+balance+student, family="binomial", 
+                data=Default, subset=train)
+  glm.probs = predict(glm.fit, Default[-train, ])
+  glm.pred = rep("No", 5000)
+  glm.pred[glm.probs > 0.5] = "Yes"
+  accuracies[i] = mean(glm.pred == Default[-train, 1])
+}
+mean(accuracies)
+```
+
+Using bootstrap to estimate standard errors
+```{r}
+boot.fn = function(data, index) {
+  return(coef(glm(default~income+balance, data=Default, family="binomial",
+                  subset=index)))
+}
+boot(Default, boot.fn, 1000)
+```
+```{r}
+summary(glm(default~income+balance, data=Default, family="binomial"))
+```
+
+Using LOOCV to figure out error on the test set for Weekly dataset
+```{r}
+head(Weekly)
+```
+```{r}
+dim(Weekly)
+```
+
+```{r}
+predictions = rep("Down", dim(Weekly)[1])
+
+for (i in 1:length(predictions)) {
+  glm.fit = glm(Direction~Lag1+Lag2, data=Weekly, family="binomial", 
+                subset=c(-i))
+  glm.probs = predict(glm.fit, Weekly[i, ])
+  if (glm.probs > 0.5) {
+    predictions[i] = "Up"
+  }
+}
+```
+
+```{r}
+accuracy = function(predicted, real) {
+  return(mean(predicted == real))
+}
+
+table(predictions, Weekly[, 9])
+```
+```{r}
+accuracy(predictions, Weekly$Direction)
+```
