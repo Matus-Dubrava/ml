@@ -1,0 +1,76 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+x = matrix(runif(1000 * 2, min = 0, max = 10), ncol = 2)
+
+circle_boundary_1 = function(x1, x2) {
+  if ((9 - 6*x1 + x1^2 + 9 - 6 * x2 + x2^2 - 9) < 0) {
+    return(0)
+  } else {
+    return(1)
+  }
+}
+
+circle_boundary_2 = function(x1, x2) {
+  if ((36 - 12*x1 + x1^2 + 9 - 6 * x2 + x2^2 - 9) < 0) {
+    return(0)
+  } else {
+    return(1)
+  }
+}
+
+combined_circle_boundary = function(x1, x2) {
+  circle1 = circle_boundary_1(x1, x2)
+  circle2 = circle_boundary_2(x1, x2)
+  if (circle1 == 0 || circle2 == 0) {
+    return(0)
+  } else {
+    return(1)
+  }
+}
+
+head(x)
+```
+
+```{r}
+res = c()
+for (row in 1:nrow(x)) {
+#  y = circle_boundary_1(x[row, 1], x[row, 2])
+  y = combined_circle_boundary(x[row, 1], x[row, 2])
+  res = c(res, y)
+}
+```
+
+```{r}
+red = x[res == 0,]
+blue = x[res == 1,]
+plot(blue[,1], blue[,2], col="blue")
+points(red[,1], red[,2], col="red")
+```
+```{r}
+library(e1071)
+
+dat = data.frame(x=x, y=as.factor(res))
+svmfit = svm(y~., data=dat, kernel="linear", cost=10)
+ypred = predict(svmfit, dat)
+table(predict=ypred, truth=dat[, "y"])
+mean(ypred == dat[, "y"])
+plot(svmfit, dat)
+```
+```{r}
+svmfit = svm(y~., data=dat, kernel="radial", cost=1, gamma=10, scale=FALSE)
+ypred = predict(svmfit, dat)
+table(predict=ypred, truth=dat[, "y"])
+mean(ypred == dat[, "y"])
+plot(svmfit, dat)
+```
+```{r}
+tune.out = tune(svm, y~., data=dat, kernel="radial", 
+                ranges=list(C=c(1, 10, 100, 1000),
+                            gamma=c(10, 1, 0.1, 0.01, 0.001)))
+summary(tune.out)
+```
+
