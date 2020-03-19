@@ -1,0 +1,103 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+# sequence of values from 5 to -11 that progresses in steps of 0.3
+s <- seq(5, -11, -0.3)
+s
+```
+```{r}
+# overwrite the above object using the same sequence with reversed order
+s <- s[length(s):1]
+s
+```
+```{r}
+# repeat the vector (-1, 3, -5, 7, -9) twice with each element repeated 10 times, display the 
+# result sorted from smallest to largest
+vec <- c(-1, 3, -5, 7, -9)
+vec <- rep(vec, times = 2, each = 10)
+sort(vec, decreasing = FALSE)
+```
+```{r}
+# create and store a vector that contains
+# i   sequence of integers from 6 to 12
+# ii  threefold repetition of the value 5.3
+# iii the number -3
+# iv  a sequene of 9 values starting at 102 and ending at the number that is the total length of the vector in 
+#     created in the previous example
+vec.1 <- c(6:12, rep(5.3, 3), -3, seq(102, length(vec), length.out = 9))
+vec.1
+length(vec.1) # length should be 20
+```
+```{r}
+# create a vector that contains the following 
+# - a sequence of length 5 from 3 to 6 
+# - a twofold repetition of the vector (2, -5.1, -33)
+# - the value 7/42 + 2
+vec.2 <- c(seq(3, 6, length.out = 5), rep(c(2, -5.1, -33), times = 2), 7/42 + 2)
+vec.2 
+```
+```{r}
+# extract the first and the last element of the vector from the previous example
+vec.3 = vec.2[c(1, length(vec.2))]
+vec.3
+```
+```{r}
+# extract all the elements from the vec.2 except for the first and the last 
+vec.4 <- vec.2[-c(1, length(vec.2))]
+vec.4
+```
+```{r}
+# use vec.3 and vec.4 to reconstruct the original vector
+c(vec.3[1], vec.4, vec.3[2])
+```
+```{r}
+# overwrite vec.2 with values sorted from smallest to largest
+vec.2 <- sort(vec.2, decreasing = FALSE)
+vec.2
+```
+```{r}
+# reverse the order of the vec.2 using : (colon) operator
+vec.2[length(vec.2):1]
+```
+```{r}
+# create a vector from vec.4 that repeats the third element three times, the sixth element four times
+# and the last element once
+vec.5 <- c(rep(vec.4[3], 3), rep(vec.4[6], 4), vec.4[length(vec.4)])
+vec.5
+```
+```{r}
+# overwrite the first, and from the fifth to the seventh elements and the last element of vec.2 
+# with the values 99 to 95 respectively
+
+vec.2[c(1, 5:7, length(vec.2))] <- 99:95
+vec.2
+```
+```{r}
+# convert the vector (2, 0.5, 1, 2, 0.5, 1, 2, 0.5, 1) to a vector of only 1s using a vector 
+# of length 3
+c(2, 0.5, 1, 2, 0.5, 1, 2, 0.5, 1) + c(-1, 0.5, 0)
+```
+```{r}
+# convert vector (45, 77, 20, 19, 101, 120, 212) in degrees Fahrenheit to degrees Celsius 
+# C = 5/9 * (F - 32)
+fhr <- c(45, 77, 20, 19, 101, 120, 212)
+cel <- 5 / 9 * (fhr - 32)
+cel
+```
+```{r}
+# use vector (2, 4, 6) and (1, 2) in conjunction with rep and * to produce the vector (2, 4, 6, 4, 8, 12)
+v.1 <- c(2, 4, 6)
+v.2 <- c(1, 2)
+v.3 <- c(rep(v.1, times = 2) * rep(v.2, each = 3))
+v.3
+```
+```{r}
+# overwrite the middle 4 elements of the vector from the previous example with the two recycled
+# values -0.1 and -100 
+v.3[2:5] <- c(-0.1, -100)
+v.3
+```
+

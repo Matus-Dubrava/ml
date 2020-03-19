@@ -1,0 +1,73 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(ISLR)
+nci.labs = NCI60$labs
+nci.data = NCI60$data
+dim(nci.data) 
+```
+```{r}
+table(nci.labs)
+```
+
+PCA on NC160 data
+```{r}
+pr.out = prcomp(nci.data, scale=TRUE)
+
+# assign color to each observation based on the type of the cancer associated with the observation
+cols <- function(vec) {
+  # get n distinct colors, one per unique value in the passed in vector
+  cols = rainbow(length(unique(vec)))
+  return(cols[as.numeric(as.factor(vec))])
+}
+
+par(mfrow = c(1, 2))
+plot(pr.out$x[, 1:2], col = cols(nci.labs), pch = 19, xlab = "Z1", ylab = "Z2")
+plot(pr.out$x[, c(1, 3)], col = cols(nci.labs), pch = 19, xlab = "Z1", ylab = "Z3")
+```
+```{r}
+# compute variance explained by each principal component
+pve = (pr.out$sdev ^ 2) / (sum(pr.out$sdev ^ 2))
+
+par(mfrow = c(1, 2))
+plot(pve, main = "Proportion of Explained variance per component", xlab = "Principal Component", ylab = "Explained Variance",
+     type = "o", col = "blue")
+plot(cumsum(pve), main = "Cumulative sum of explained variance", xlab = "Principal Component", 
+     ylab = "Explained Variance Cumsum", type = "o", col = "brown3")
+```
+```{r}
+summary(pr.out)$importance[2, ] # this is PVE 
+summary(pr.out)$importance[3, ] # this is cumsum(PVE)
+```
+
+Clustering the observation of the NC160 data
+```{r}
+# scale the data
+sd.data = scale(nci.data)
+
+# plotting dendrograms (using complete, average and single linkage methods)
+data.dist = dist(sd.data)
+par(mfrow = c(1, 3))
+plot(hclust(data.dist), labels = nci.labs, main = "Complete Linkage", xlab = "", ylab = "", sub = "")
+plot(hclust(data.dist, method = "average"), labels = nci.labs, main = "Average Linkage", xlab = "", ylab = "", sub = "")
+plot(hclust(data.dist, method = "single"), labels = nci.labs, main = "Single Linkage", xlab = "", ylab = "", sub = "")
+```
+```{r}
+# continue with complete linkage method
+hc.out = hclust(dist(sd.data))
+hc.clusters = cutree(hc.out, 4)
+
+# show relationship between clusters and labels
+table(hc.clusters, nci.labs)
+```
+```{r}
+plot(hc.out, labels = nci.labs, xlab = "", sub = "")
+abline(h = 139, col = "red")
+```
+```{r}
+hc.out
+```
+

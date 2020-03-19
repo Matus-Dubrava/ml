@@ -1,0 +1,56 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+states = row.names(USArrests)
+print(states)
+```
+```{r}
+names(USArrests)
+```
+```{r}
+apply(USArrests, 2, mean)
+```
+```{r}
+apply(USArrests, 2, var)
+```
+```{r}
+pr.out = prcomp(USArrests, scale=TRUE)
+names(pr.out)
+```
+```{r}
+# computed mean before applying PCA
+pr.out$center
+```
+```{r}
+# computed standard deviation before applying PCA
+pr.out$scale
+```
+```{r}
+# principal component loading vectors
+pr.out$rotation
+```
+```{r}
+# pr.out$x contains the transformed dataset
+dim(pr.out$x)
+```
+```{r}
+biplot(pr.out, scale = 0)
+```
+```{r}
+# computing the explained variance by each principal component
+print(pr.out$sdev ^ 2)
+# and the ratio
+pve = pr.out$sdev ^ 2 / sum(pr.out$sdev ^ 2)
+print(pve)
+```
+```{r}
+par(mfrow=c(1, 2))
+plot(pve, xlab = "Principal Component", ylab = "Proportion of variance explained", ylim = c(0, 1), type = "b")
+plot(cumsum(pve), xlab = "Principal Component", ylab = "Cumulative proportion of variance explained", 
+     ylim = c(0, 1), type = "b")
+```
+
+
