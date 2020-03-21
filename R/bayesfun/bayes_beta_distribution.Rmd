@@ -1,0 +1,62 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+# there is a likelihood of an event happening of 3720:1 
+# corresponding beta distribution is
+alp.like <- 2
+beta.like <- 7400
+p <- seq(0, 0.003, length.out = 1000)
+plot(p, dbeta(p, alp.like, beta.like), type = "l")
+p.max <- p[which.max(dbeta(p, alp.like, beta.like))]
+lines(rep(p.max, 2), c(0, 2800), col = "red")
+```
+```{r}
+# prior belief is 20000:1
+alp.pri <- 20000
+beta.pri <- 1
+p <- seq(0.999, 1, length.out = 1000)
+plot(p, dbeta(p, alp.pri, beta.pri), type = "l")
+p.max <- p[which.max(dbeta(p, alp.pri, beta.pri))]
+lines(rep(p.max, 2), c(0, 20000), col = "red")
+```
+```{r}
+# combining the likelihood and prior to obtain the posterior
+p <- seq(0.6, 0.8, length.out = 1000)
+plot(p, dbeta(p, alp.like + alp.pri, beta.like + beta.pri), type = "l")
+p.max <- p[which.max(dbeta(p, alp.like + alp.pri, beta.like + beta.pri))]
+lines(rep(p.max, 2), c(0, 150), col = "red")
+```
+```{r}
+# flipping a coin, we get 6 heads and 1 tail
+# what is a probability that the coin is fair (rate of heads is between 0.4 and 0.6)
+alp.coin1 <- 6
+beta.coin1 <- 1
+integrate(function(p) dbeta(p, alp.coin1, beta.coin1), 0.4, 0.6)
+```
+```{r}
+p <- seq(0, 1, length.out = 1000)
+plot(p, dbeta(p, alp.coin1, beta.coin1), type = "l")
+p.max <- p[which.max(dbeta(p, alp.coin1, beta.coin1))]
+lines(rep(p.max, 2), c(0, 6), col = "red")
+lines(rep(0.4, 2), c(0, 6), col = "blue")
+lines(rep(0.6, 2), c(0, 6), col = "blue")
+```
+```{r}
+# find a prior that the coin is fair such that there is at least 95 percent probability that the 
+# rate of heads is between 0.4 and 0.6
+
+alp.coin1.pri = 55 # let's say that we initially expect 55 heads and 55 tails in 110 tosses
+beta.coin1.pri = 55
+integrate(function(p) dbeta(p, alp.coin1.pri + alp.coin1, beta.coin1.pri + beta.coin1), 0.4, 0.6)
+```
+```{r}
+# how many tails we need to see so that the probability of rate of heads being between 0.4 and 0.6 drops 
+# below 0.5
+
+alp.coin1.next = 23 # in this setting, we need to see at least 23 heads
+integrate(function(p) dbeta(p, alp.coin1.pri + alp.coin1 + alp.coin1.next, beta.coin1.pri + beta.coin1), 0.4, 0.6)
+```
+
