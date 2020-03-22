@@ -1,0 +1,102 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+# out of 40000 visitors, 300 have subscribed, estimate the conversion rate and 95% confidence interval
+
+# plotting the beta distribution
+a <- 300
+b <- 40000 - a
+p <- seq(0, 1, length.out = 100000)
+plot(p, dbeta(p, a, b), type = "l", xlim = c(0, 0.02))
+
+m <- a / (a + b)
+lines(rep(m, 2), c(0, dbeta(m, a, b)), col = "blue")
+```
+```{r}
+# plotting cumulative distribution function
+plot(p, pbeta(p, a, b), type = "l", xlim = c(0.006, 0.009))
+```
+```{r}
+# plotting quantile function
+plot(p, qbeta(p, a, b), type = "l", ylim = c(0.006, 0.009))
+bound.low <- qbeta(0.025, a, b)
+bound.high <- qbeta(0.975, a, b)
+lines(rep(0.025, 2), c(0, bound.low), col = "blue")
+text(0.025, 0.007, 0.0667, col = "blue")
+lines(rep(0.975, 2), c(0, bound.high), col = "blue")
+text(0.975, 0.0085, 0.0837, col = "blue")
+```
+```{r}
+# we have measurements on snowfall, what is the expected value and 99.9 percent confidence interval
+vals <- c(7.8, 9.4, 10.0, 7.9, 9.4, 7.0, 7.0, 7.1, 8.9, 7.4)
+
+m <- mean(vals)
+std <- sd(vals)
+p <- seq(0, 15, length.out = 1000)
+
+plot(p, dnorm(p, m, std), type = "l", axes = F, xlab = "snowfall", ylab = "density")
+lines(rep(m, 2), c(0, dnorm(m, m, std)), col = "blue")
+
+# 0.0005 and 0.9995
+bound.low <- qnorm(0.0005, m, std)
+bound.high <- qnorm(0.9995, m, std)
+lines(rep(bound.low, 2), c(0, dnorm(m, m, std)), col = "red")
+lines(rep(bound.high, 2), c(0, dnorm(m, m, std)), col = "red")
+axis(side = 1, at = c(0, bound.low, m, bound.high, 15))
+axis(side = 2, at = c(0, 0.35))
+```
+```{r}
+# A child is going door to door selling candy bars. So far she has visited 30 houses and sold 10 bars. 
+# She will visit 40 more houses today. What is the 95 percent confidence interval for how many bars
+# she will sell the rest of the day?
+
+a <- 10
+b <- 20
+m <- qbeta(0.5, a, b)
+p <- seq(0, 1, length.out = 1000)
+plot(p, dbeta(p, a, b), type = "l", axes = F, xlab = "probability", ylab = "density")
+lines(rep(m, 2), c(0, dbeta(m, a, b)), col = "red")
+
+bound.low <- qbeta(0.025, a, b)
+bound.high <- qbeta(0.975, a, b)
+lines(rep(bound.low, 2), c(0, dbeta(m, a, b)), col = "blue")
+lines(rep(bound.high, 2), c(0, dbeta(m, a, b)), col = "blue")
+axis(side = 1, at = c(0, bound.low, m, bound.high, 1))
+axis(side = 2, at = c(0, dbeta(m, a, b)))
+```
+```{r}
+to.visit <- 40
+sales.low <- bound.low * to.visit
+sales.high <- bound.high * to.visit
+cat("estimations based on beta distribution: ")
+cat(sales.low, sales.high)
+```
+```{r}
+# now that we know success rate at each extreme of 95% confidence interval, we could use binomial distribution 
+# to verify these values
+
+k <- 1:30
+plot(k, dbinom(k, to.visit, bound.low), type = "b", axes = F, ylab = "probability", 
+     main = "95% confidence for sold bars")
+lines(k, dbinom(k, to.visit, bound.high), type = "b")
+text(13, 0.15, "binom(k, 40, 0.179)")
+text(27, 0.11, "binom(k, 40, 0.508)")
+
+low.max <- which.max(dbinom(k, to.visit, bound.low))
+high.max <- which.max(dbinom(k, to.visit, bound.high))
+
+# highlighting max values
+points(low.max, dbinom(low.max, to.visit, bound.low), col = "red")
+points(high.max, dbinom(high.max, to.visit, bound.high), col = "red")
+
+axis(side = 1, at = c(1, low.max, 15, high.max, 30))
+axis(side = 2, at = c(0, dbinom(7, to.visit, bound.low)))
+
+# verical lines for max values
+lines(rep(low.max, 2), c(0, dbinom(low.max, to.visit, bound.low) - 0.02 * dbinom(low.max, to.visit, bound.low)), col = "red")
+lines(rep(high.max, 2), c(0, dbinom(high.max, to.visit, bound.high) - 0.02 * dbinom(high.max, to.visit, bound.high)), col = "red")
+```
+
+

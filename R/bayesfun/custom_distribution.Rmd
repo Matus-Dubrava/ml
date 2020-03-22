@@ -1,0 +1,62 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+# we have observed 24 successes and 76 failures in 100 observations, use 
+# bayes factor to estimate the best hypotesis (hypotesis in this case represents the real success rate),
+# base hypotesis is that the success rate is 1/2
+
+a <- 24
+b <- 76
+base.proba <- 0.5
+
+beta.factor <- function(p, alpha, beta, base.proba) {
+  ((p^alpha * (1 - p)^beta) / (base.proba^alpha * base.proba^beta))
+}
+
+p <- seq(0, 1, by = 0.01)
+plot(p, beta.factor(p, a, b, base.proba), type = "l", axes = F)
+lines(rep(0.24, 2), c(0, 1500000), col = "red")
+
+max.p <- p[which.max(beta.factor(p, a, b, base.proba))]
+axis(side = 1, at = c(0, max.p, 0.5, 1))
+```
+```{r}
+# now we will combine our bayes factor with prior 
+# prior odds that the value is between 0.2 and 0.3 are 1/1000
+bfs <- beta.factor(p, a, b, base.proba)
+priors <- ifelse(p >= 0.2 & p <= 0.3, 1/1000, 1)
+posteriors <- bfs * priors
+
+# normalizing posteriors
+posteriors <- posteriors / sum(posteriors)
+
+# cumulative sum of posteriors
+posteriors.cumsum <- cumsum(posteriors)
+
+par(mfrow = c(1, 2))
+plot(p, posteriors, type = "l")
+plot(p, posteriors.cumsum, type = "l")
+```
+```{r}
+# probability that the success rate is less than 0.5
+posteriors.cumsum[which.min(p < 0.5)]
+
+# value with the highest probability is 
+p[which.max(posteriors)]
+```
+```{r}
+# changing the base hypotesis from 0.5 to 0.24
+bfs.orig <- beta.factor(p, a, b, 0.5)
+bfs.orig <- bfs.orig / sum(bfs.orig)
+plot(p, bfs.orig, type = "l")
+
+bfs.new <- beta.factor(p, a, b, 0.24)
+bfs.new <- bfs.new / sum(bfs.new)
+lines(p[c(T, F)], bfs.new[c(T, F)], col = "dodgerblue", type = "o")
+```
+
+
+

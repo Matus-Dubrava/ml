@@ -1,0 +1,113 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+# create a list that contains 20 evenly spaced numbers between -4 and 4, 
+# a 3 x 3 matrix of logical vector c(F, T, T, T, F, T, T, F, F) filled column-wise,
+# a character vector with two strings "don" and "quixote",
+# and a factor vector containing observations c("LOW", "MED", "LOW", "MED", "MED", "HIGH")
+vec.num <- seq(-4, 4, length.out = 20)
+A <- matrix(c(F, T, T, T, F, T, T, F, F), nrow = 3, ncol = 3)
+vec.c <- c("don", "quixote")
+fac <- factor(c("LOW", "MED", "LOW", "MED", "MED", "HIGH"))
+
+list.foo <- list(vec.num, A, vec.c, fac)
+list.foo
+```
+```{r}
+# extract row elements 2 and 1 of columns 2 and 3, in that order, of the logical matrix
+list.foo[[2]][c(2, 1), c(2, 3)]
+```
+```{r}
+# overwrite using sub, "quixote" with "Quixote" and "don" with "Don"
+list.foo[[3]][1] = sub(pattern = "don", replacement = "Don", x = list.foo[[3]][1])
+list.foo[[3]][2] = sub(pattern = "quixote", replacement = "Quixote", x = list.foo[[3]][2])
+cat("Windmills! ATTACK!\n\t-\\", list.foo[[3]][1], " ", list.foo[[3]][2], "/-", sep = "")
+```
+```{r}
+# obtain all values from the sequence between -4 and 4 that are greater than 1
+list.foo[[1]][list.foo[[1]] > 1]
+```
+```{r}
+# using "which", determine which indexes in the factor vector are assigned the "MED" level
+which(list.foo[[4]] == "MED")
+```
+```{r}
+# create a new list with the factor vector from the above example as a component named "facs", the
+# numeric vector c(3, 2.1, 3.3, 4, 1.5, 4.9) named "nums",
+# and a nested list comprised of the first three members of the previous list named "oldlist"
+list.bar <- list(facs = list.foo[[4]],
+                 nums = c(3, 2.1, 3.3, 4, 1.5, 4.9),
+                 oldlist = list.foo[1:3])
+list.bar
+```
+```{r}
+# extract elements of "facs" that correspond to elements of "nums" that are greater than or equal to 3
+list.bar$facs[list.bar$nums >= 3]
+```
+```{r}
+# add a new member to the list named "flags" 
+# this should be a logical vector of length 6, obtained by twofold repetition of the third column
+# of the logical matrix in the "oldlist"
+list.bar$flags <- rep(list.bar$oldlist[[2]][, 3], 2)
+list.bar
+```
+```{r}
+# use "flags" and logical negation (!) to extract the entries of "num" corresponding to FALSE
+list.bar$nums[!list.bar$flags]
+```
+```{r}
+# overwrite the character vector in the "oldlist" with single string "Don Quixote"
+list.bar$oldlist[[3]] <- "Don Quixote"
+list.bar
+```
+```{r}
+# working with data frames
+dframe <- data.frame(person = c("Stan", "Francine", "Steve", "Roger", "Hayley", "Klaus"),
+                     sex = factor(c("M", "F", "M", "M", "F", "M")),
+                     funny = factor(c("High", "Med", "Low", "High", "Med", "Med")),
+                     stringsAsFactors = F)
+dframe
+```
+```{r}
+# append new vector, age, to the existing data frame
+age <- c(41, 41, 15, 1600, 21, 60)
+dframe$age <- age
+dframe
+```
+```{r}
+# reorder columns - person, age, sex, funny
+dframe <- dframe[, c("person", "age", "sex", "funny")]
+dframe
+```
+```{r}
+# create age.mon column
+dframe$age.mon <- dframe$age * 12
+dframe
+```
+```{r}
+# delete age.mon column
+dframe <- dframe[, -5]
+dframe
+```
+```{r}
+# combine new dataframe with the exising one
+dframe.2 <- data.frame(person = c("Peter", "Lois", "Meg", "Chris", "Stewie", "Brian"), 
+                       age = c(42, 40, 17, 14, 1, 7),
+                       sex = factor(c("M", "F", "F", "M", "M", "M")),
+                       funny = factor(c("High", "High", "Low", "Med", "High", "Med")),
+                       stringsAsFactors = F)
+dframe.3 <- rbind(dframe, dframe.2)
+dframe.3
+```
+```{r}
+# extract names and ages of any record where the individual is female and has a level of
+# funniness equal to Med or High
+dframe.3[dframe.3$sex == "F" & (dframe.3$funny == "Med" | dframe.3$funny == "High"),]
+```
+```{r}
+# extract all records where the individual's name starts with S
+dframe.3[substr(dframe.3$person, start = 1, stop = 1) == "S",]
+```
+

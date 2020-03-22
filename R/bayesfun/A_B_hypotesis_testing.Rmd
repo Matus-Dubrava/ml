@@ -1,0 +1,123 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+# hypotesis testing of email conversion (A/B test)
+# A - using image
+# B - not using image
+# our prior is that 30% click through rate (both variants)
+
+prior.a <- 3
+prior.b <- 7
+
+# observed variant A - clicked 36, not clicked 114
+# observed variant B - clicked 50, not clicked 100
+alpha.A <- 36
+beta.A <- 114
+alpha.B <- 50
+beta.B <- 100
+
+# comparing the 2 beta distributions 
+p <- seq(0, 1, length.out = 1000)
+plot(p, dbeta(p, alpha.A + prior.a, beta.A + prior.b), type = "l", col = "brown", xlab = "click-through rate", ylab = "density",
+     xlim = c(0, 0.6))
+lines(p, dbeta(p, alpha.B + prior.a, beta.B + prior.b), type = "l", col = "dodgerblue")
+```
+```{r}
+# using monte carlo simulation to estimate the probability of variant B being better than variant A
+n.trials <- 100000
+A.samples <- rbeta(n.trials, alpha.A + prior.a, beta.A + prior.b)
+B.samples <- rbeta(n.trials, alpha.B + prior.b, beta.B + prior.b)
+
+# in how many trials was variant B better than variant A?
+sum(B.samples > A.samples) / n.trials
+
+# how much better is the variant B?
+sum(B.samples / A.samples) / n.trials
+```
+```{r}
+hist(B.samples / A.samples)
+```
+```{r}
+# variant where we very strongly believe variant B is no better than variant B
+prior.A.a <- 300
+prior.A.b <- 700
+prior.B.a <- 300
+prior.B.b <- 700
+
+plot(p, dbeta(p, alpha.A + prior.A.a, beta.B + prior.A.b), col = "brown", type = "l",
+     xlab = "click-through rate", ylab = "density")
+lines(p, dbeta(p, alpha.B + prior.B.a, beta.B + prior.B.b), col = "dodgerblue", type = "l")
+```
+```{r}
+A.samples <- rbeta(n.trials, alpha.A + prior.A.a, beta.A + prior.A.b)
+B.samples <- rbeta(n.trials, alpha.B + prior.B.a, beta.B + prior.B.b)
+
+sum(B.samples > A.samples) / n.trials
+sum(B.samples / A.samples) / n.trials
+```
+```{r}
+# next, we will work with the belief that the variant B has only 0.2 conversion rate
+prior.A.a <- 30
+prior.A.b <- 70
+prior.B.a <- 20
+prior.B.b <- 80
+
+plot(p, dbeta(p, alpha.A + prior.A.a, beta.B + prior.A.b), col = "brown", type = "l",
+     xlab = "click-through rate", ylab = "density")
+lines(p, dbeta(p, alpha.B + prior.B.a, beta.B + prior.B.b), col = "dodgerblue", type = "l")
+```
+```{r}
+A.samples <- rbeta(n.trials, alpha.A + prior.A.a, beta.A + prior.A.b)
+B.samples <- rbeta(n.trials, alpha.B + prior.B.a, beta.B + prior.B.b)
+
+sum(B.samples > A.samples) / n.trials
+sum(B.samples / A.samples) / n.trials
+```
+```{r}
+# the true conversion rate is 0.25 for A, and 0.3 for B, assume that we want to be 95 percent certain that the 
+# variant B is better than variant A. How many samples it would take to convince is if we initially believed that
+# the A and B are equal?
+
+alpha.A <- 36
+beta.A <- 114
+alpha.B <- 50
+beta.B <- 100
+
+prior.A.a <- 300
+prior.A.b <- 700
+prior.B.a <- 300
+prior.B.b <- 700
+
+true.A.rate <- 0.25
+true.B.rate <- 0.3
+n.samples <- 1000
+
+run.simulation <- function(n.iter, n.samples, true.A.rate, true.B.rate, alpha.A, alpha.B, beta.A, beta.B,
+                           prior.A.a, prior.A.b, prior.B.a, prior.B.b) {
+  res <- c()
+  for (i in 1:n.iter) {
+    A.conversions <- runif(n.samples) <= true.A.rate
+    B.conversions <- runif(n.samples) <= true.B.rate
+    
+    alpha.A <- alpha.A + sum(A.conversions)
+    beta.A <- beta.A + n.samples - sum(A.conversions)
+    alpha.B <- alpha.B + sum(B.conversions)
+    beta.B <- beta.B + n.samples - sum(B.conversions)
+    
+    A.samples <- rbeta(n.trials, alpha.A + prior.A.a, beta.A + prior.A.b)
+    B.samples <- rbeta(n.trials, alpha.B + prior.B.a, beta.B + prior.B.b)
+    
+    res <- c(res, sum(B.samples > A.samples) / n.trials)
+  }
+  return(sum(res) / n.iter)
+}
+
+run.simulation(100, 1000, true.A.rate = true.A.rate, true.B.rate = true.B.rate, 
+               alpha.A = alpha.A, alpha.B = alpha.B, beta.A = beta.A, beta.B = beta.B,
+               prior.A.a = prior.A.a, prior.A.b = prior.A.b, prior.B.a = prior.B.a, prior.B.b = prior.B.b)
+```
+
+
+

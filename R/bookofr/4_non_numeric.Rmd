@@ -1,0 +1,189 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+# having vector c(6, 9, 7, 3, 6, 7, 9, 6, 3, 6, 6, 7, 1, 9, 1)
+
+# identify those elements equal to 6
+vec <- c(6, 9, 7, 3, 6, 7, 9, 6, 3, 6, 6, 7, 1, 9, 1)
+vec == 6
+vec[vec == 6]
+sum(vec == 6)
+```
+```{r}
+# elements greater than or equal to 6
+vec >= 6
+vec[vec >= 6]
+sum(vec >= 6)
+```
+```{r}
+# elements not equal to 6
+vec != 6
+vec[vec != 6]
+sum(vec != 6)
+```
+```{r}
+# confirm locations of elements equal to 0 in 10 x 10 identity matrix
+I <- diag(x = 10)
+I <- I == 0
+I
+```
+```{r}
+# confirm that there are no elements equal to TRUE on the diagonal of the above matrix
+any(diag(I))
+```
+```{r}
+# in vector c(7, 1, 7, 10, 5, 9, 10, 3, 10, 8), identify elements greater than 5 or equal to 2
+foo <- c(7, 1, 7, 10, 5, 9, 10, 2, 10, 8)
+foo.mask <- foo > 5 | foo == 2
+foo.mask
+foo[foo.mask]
+```
+```{r}
+# in vector c(8, 8, 4, 4, 5, 1, 5, 6, 6, 8), identify elements less than or equal to 6 and not equal to 4
+bar <- c(8, 8, 4, 4, 5, 1, 5, 6, 6, 8)
+bar.mask <- bar <= 6 & bar != 4
+bar.mask
+bar[bar.mask]
+```
+```{r}
+# create vector that is the result of element sum of foo and bar
+baz <- foo + bar
+baz
+```
+```{r}
+# identify elements of baz greater than or equal to 14 but not equal to 15
+baz.mask <- baz >= 14 & baz != 15
+baz.mask
+baz[baz.mask]
+```
+```{r}
+# in vector c(7, 5, 6, 1, 2, 10, 8, 3, 8, 2)
+# extract elements greater than or equal to 5 and store the result
+foo <- c(7, 5, 6, 1, 2, 10, 8, 3, 8, 2)
+bar <- foo[foo >= 5]
+bar
+
+# display the rest of the elements that were not selected in the previous step
+foo[!(foo >= 5)]
+```
+```{r}
+# use "bar" from the previous example and store it as a 2 x 3 matrix filled in a row-wise fashion
+A <- matrix(bar, nrow = 2, ncol = 3)
+A
+
+# replace any element that is equal to 8 with the squared value of the element in row 1, column 2
+B <- A
+B[B == 8] = B[1, 2] ** 2
+B
+
+# confirm that all elements of B are less than or equal to 36 and are greater than 4
+B.mask <- B <= 36 & B > 4
+all(B.mask)
+```
+```{r}
+# create a 3 x 2 x 3 array using vector c(10, 5, 1, 4, 7, 4, 3, 3, 1, 3, 4, 3, 1, 7, 8, 3, 7, 3)
+qux <- array(c(10, 5, 1, 4, 7, 4, 3, 3, 1, 3, 4, 3, 1, 7, 8, 3, 7, 3), dim = c(3, 2, 3))
+qux
+```
+```{r}
+# indentify index positions of elements that are either 3 or 4
+which(qux == 3 | qux == 4, arr.ind = T)
+```
+```{r}
+# replace all elements in qux that are less than 3 or greater than or equal to 7 with the value 100
+qux[qux < 3 | qux >= 7] = 100
+qux
+```
+```{r}
+# extract every second value from vector foo 
+foo <- c(7, 5, 6, 1, 2, 10, 8, 3, 8, 2)
+foo[c(F, T)]
+```
+```{r}
+# use tab and newline character
+cat("The quick brown fox\n\tjumped over\n\t\tthe lazy dogs")
+```
+```{r}
+# create a string build from numberic values
+num1 <- 4
+num2 <- 0.75
+cat("The result of multiplying", num1, "by", num2, "is", num1 * num2)
+```
+```{r}
+# replace a substring john with sue
+pth <- "/Users/john/dir"
+sub("john", replacement = "sue", x = pth)
+```
+```{r}
+# concatenate two strings together and replace all instences of "wood" with "metal"
+foo <- "How much wood could a woodchuck chuck"
+bar <- "if a woodchuck could chuck wood"
+baz = gsub(pattern = "wood", replacement = "metal", x = paste(foo, bar))
+baz
+```
+```{r}
+# in the string "Two 6-packs for $12.99", check whether the substring that starts at 5th index and 
+# ends at 10th index is equal to "6-pack"
+foo <- "Two 6-packs for $12.99"
+substr(foo, 5, 10) == "6-pack"
+
+# replace "$12.99" with "10.99"
+sub(pattern = "12.99", replacement = "10.99", x = foo)
+```
+```{r}
+sex <- rep("M", 20)
+sex[c(1, 5:7, 12, 14:16)] = "F"
+sex
+
+party <- rep("National", 20)
+party[c(1, 4, 12, 15, 16, 19)] = "Labour"
+party[c(6, 9, 11)] = "Greens"
+party[c(10, 20)] = "Other"
+
+# create factor vectors out of sex and party vectors
+sex.fac <- factor(sex)
+party.fac <- factor(party, levels = c("National", "Labour", "Greens", "Other", "Maori"))
+sex.fac
+party.fac
+
+# return factor vector of chosen parties only for males
+party.fac[sex.fac == "M"]
+
+# return a factor vector of genders for those who chose National
+sex.fac[party.fac == "National"]
+
+# combine the previous factor vectors with 
+# c("National", "Maori", "Maori", "Labour", "Greens", "Labour")
+# c("M", "M", "F", "F", "F", "M")
+sex.fac.new <- factor(c("M", "M", "F", "F", "F", "M"))
+sex.comb <- levels(sex.fac)[c(sex.fac, sex.fac.new)]
+sex.fac.comb <- factor(x = sex.comb, levels = levels(sex.fac))
+sex.fac.comb
+
+party.fac.new <- factor(c("National", "Maori", "Maori", "Labour", "Greens", "Labour"),
+                        levels = c("National", "Labour", "Greens", "Other", "Maori"))
+party.comb <- levels(party.fac)[c(party.fac, party.fac.new)]
+party.fac.comb <- factor(party.comb, levels = levels(party.fac))
+party.fac.comb
+```
+```{r}
+# create a vector of confidence that the Labour will win more seats than National
+lab.win <- c(93, 55, 29, 100, 52, 84, 56, 0, 33, 52, 35, 55, 46, 40, 40, 56, 45, 64, 31, 10, 29, 40, 95, 18, 61, 100)
+
+# create a factor with levels of confidence: low [0, 30], moderate (30, 70], high (70, 100]
+lab.win.fac <- cut(x = lab.win, breaks = c(0, 30, 70, 100), include.lowest = T, labels = c("low", "medium", "high"))
+lab.win.fac
+```
+```{r}
+# extract the levels for those who originally indentified with Labour
+lab.win.fac[party.fac.comb == "Labour"]
+length(lab.win.fac)
+
+# extract the same for National
+lab.win.fac[party.fac.comb == "National"]
+```
+
+
+

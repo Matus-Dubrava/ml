@@ -1,0 +1,122 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+foo <- c(13563, -14156, -14319, 16981, 12921, 11979, 9568, 8833, -12968, 8133)
+
+# output all values that, when raised to a power of 75 are NOT infinite
+foo[is.finite(foo ^ 75)]
+
+# return the elements of foo, excluding those that result in negative infinity when raised to the power of 75
+foo[is.finite(foo ^ 75) | (foo ^ 75) >= 0]
+```
+```{r}
+bar <- matrix(c(77875.40, -35466.25, -39803.81, 27551.45, -73333.85, 55976.34, 23764.30, 36599.69, 76694.82, 
+                -36478.88, -70585.69, 47032.00), nrow = 3, ncol = 4)
+bar
+```
+```{r}
+# identify coordinate-specific indexes of the entries of bar that are NaN when raised to a power of 65
+# and divided by infinity
+which(is.nan(bar ^ 65 / Inf), arr.ind = T)
+```
+```{r}
+# return values that are NOT NaN when bar is raised to a power of 67 and infinity is added to the result
+res.1 <- bar[!is.nan(bar ^ 67 + Inf)]
+
+# return values that are not equal to negative infinity after being raised to a power of 67
+res.2 <- bar[!(is.infinite(bar ^ 67) & bar < 0)]
+
+# there results should be equal
+res.1
+res.2
+all(res.1 == res.2)
+```
+```{r}
+# identify those values that are either negative infinity or finite when raised to a power of 67
+bar[(is.infinite(bar ^ 67) & bar < 0) | is.finite(bar ^ 67)]
+```
+```{r}
+foo <- c(4.3, 2.2, NULL, 2.4, NaN, 3.3, 3.1, NULL, 3.4, NA)
+
+# the length of foo is 8? TRUE - NULL values are not included in the vector
+length(foo)
+
+# calling which(x = is.na(x == foo)) will not result in 4 and 8? FALSE - the same reasoning as before
+which(is.na(foo))
+
+# checking is.null will provide us with the indexes of the two NULL values? FALSE - it will povide us with 
+# single value FALSE because the vector is not empty
+is.null(foo)
+```
+```{r}
+# create a list with one member
+bar <- list(c(7, 7, NA, 3, NA, 1, 1, 5, NA))
+
+# name the member "alpha"
+names(bar) <- c("alpha")
+bar
+
+# confirm that this list doesn't have a member called "beta"
+is.null(bar$beta)
+
+# add a new member called "beta", which is the vector obtained by indentifying the index positions of alpha that are NA
+bar$beta <- which(is.na(bar$alpha))
+bar
+```
+```{r}
+# identify the class of the following objects
+foo <- array(data = 1:36, dim = c(3, 3, 4))
+class(foo)
+attributes(foo)
+
+bar <- as.vector(foo)
+class(bar)
+attributes(bar)
+
+baz <- as.character(foo)
+class(baz)
+attributes(baz)
+
+qux <- as.factor(baz)
+class(qux)
+attributes(qux)
+
+quux <- bar + c(-0.1, 0.1)
+class(quux)
+```
+```{r}
+res <- c(is.numeric(foo) + is.integer(foo),
+         is.numeric(bar) + is.integer(bar),
+         is.numeric(baz) + is.integer(baz),
+         is.numeric(qux) + is.integer(qux),
+         is.numeric(quux) + is.integer(quux))
+res <- factor(res)
+res
+
+as.numeric(res)
+```
+```{r}
+# turn numeric matrix into character vector (by row)
+A <- matrix(2:13, nrow = 3, ncol = 4)
+A
+
+as.character(t(A))
+```
+```{r}
+B <- matrix(c(34, 23, 33, 42, 41, 0, 1, 1, 0, 0, 1, 2, 1, 1, 2), nrow = 5)
+B
+
+# coerce the matrix to a data frame
+dframe <- as.data.frame(B)
+
+# coerce the second column to be logical
+dframe[, 2] <- as.logical(dframe[, 2])
+
+# coerce the third column to be factor-valued
+dframe[, 3] <- as.factor(dframe[, 3])
+dframe
+```
+

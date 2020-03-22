@@ -1,0 +1,85 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+# we are flipping a coin, after 12 trials we observe 9 heads and 3 tails
+
+# beta distribution without any prior
+a <- 9
+b <- 3
+p <- seq(0, 1, length.out = 1000)
+
+par(mfrow = c(2, 2))
+plot(p, dbeta(p, a, b), type = "l", xlab = "probability", ylab = "density", 
+     main = "Beta(9, 3), no prior")
+
+# very strong prior that the rate of heads is 50% (equal to 1000 trials)
+a.prior <- 500
+b.prior <- 500
+plot(p, dbeta(p, a + a.prior, b + b.prior), type = "l", xlab = "probability", ylab = "density",
+     main = "Beta(9, 3), very strong prior 50% heads")
+
+# weak prior that the rate of heads is 70% (equal to 10 trials)
+a.prior <- 7
+b.prior <- 3
+plot(p, dbeta(p, a + a.prior, b + b.prior), type = "l", xlab = "probability", ylab = "density",
+     main = "Beta(9, 3), weak prior 70% heads")
+
+# strong prior that the rate of heads is 70% (equal to 100 truals)
+a.prior <- 70
+b.prior <- 30
+plot(p, dbeta(p, a + a.prior, b + b.prior), type = "l", xlab = "probability", ylab = "density",
+     main = "Beta(9, 3), strong prior 70% heads")
+```
+```{r}
+# updating the actual data with 20 more observations: 9 heads and 11 tails 
+a.up <- 18
+b.up <- 14
+
+plot.beta <- function(a, b, a.up, b.up, prior.a, prior.b, title) {
+  bound.low <- qbeta(0.025, a.up + prior.a, b.up + prior.b)
+  bound.high <- qbeta(0.975, a.up + prior.a, b.up + prior.b)
+  plot(p, dbeta(p, a.up + prior.a, b.up + prior.b), type = "l", 
+       col = "darkgreen", main = title, xlab = "probability", ylab = "density")
+  lines(rep(bound.low, 2), c(0, dbeta(bound.low, a.up + prior.a, b.up + prior.b)), col = "darkgreen")
+  lines(rep(bound.high, 2), c(0, dbeta(bound.high, a.up + prior.a, b.up + prior.b)), col = "darkgreen")
+  
+  # no prior original
+  bound.low <- qbeta(0.025, a + prior.a, b + prior.b)
+  bound.high <- qbeta(0.975, a + prior.a, b + prior.b)
+  lines(p, dbeta(p, a + prior.a, b + prior.b), type = "l")
+  lines(rep(bound.low, 2), c(0, dbeta(bound.low, a + prior.a, b + prior.b)))
+  lines(rep(bound.high, 2), c(0, dbeta(bound.high, a + prior.a, b + prior.b)))
+}
+
+par(mfrow = c(2, 2))
+plot.beta(a, b, a.up, b.up, 0, 0, "Beta(18,14), no prior")
+plot.beta(a, b, a.up, b.up, 500, 500, "Beta(18,14), very strong prior 50% heads")
+plot.beta(a, b, a.up, b.up, 7, 3, "Beta(18,14), weak prior 70% heads")
+plot.beta(a, b, a.up, b.up, 70, 30, "Beta(18,14), strong prior 70% heads")
+```
+```{r}
+# confidence intercals before and after 
+get.confint <- function(a, b, a.up, b.up, prior.a, prior.b) {
+  bound.low.orig <- qbeta(0.025, a + prior.a, b + prior.b)
+  bound.high.orig <- qbeta(0.975, a + prior.a, b + prior.b)
+  bound.low.new <- qbeta(0.025, a.up + prior.a, b.up + prior.b)
+  bound.high.new <- qbeta(0.975, a.up + prior.a, b.up + prior.b)
+  
+  res <- list(low.orig = bound.low.orig,
+              low.new = bound.low.new,
+              high.orig = bound.high.orig,
+              high.new = bound.high.new)
+  return(res)
+}
+
+df <- rbind(get.confint(a, b, a.up, b.up, 0, 0),
+           get.confint(a, b, a.up, b.up, 500, 500),
+           get.confint(a, b, a.up, b.up, 7, 3),
+           get.confint(a, b, a.up, b.up, 70, 30))
+df
+```
+
+
