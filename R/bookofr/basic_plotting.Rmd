@@ -1,0 +1,52 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+# basic plotting
+plot(c(-3, 3), c(7, 13), type = "n", xlab = "", ylab = "")
+abline(h = c(7, 13), lty = "dashed")
+segments(-3, 6, -3, 14, lty = "dashed")
+segments(3, 6, 3, 14, lty = "dashed")
+text(0, 10, "SOMETHING\nPROFOUND")
+arrows(-2.5, 7.5, -1, 9, length = 0.2)
+arrows(2.5, 7.5, 1, 9, length = 0.2)
+arrows(-2.5, 10, -1, 10, length = 0.2)
+arrows(2.5, 10, 1, 10, length = 0.2)
+arrows(-2.5, 12.5, -1, 11, length = 0.2)
+arrows(2.5, 12.5, 1, 11, length = 0.2)
+```
+```{r}
+df <- data.frame(weight = c(55, 85, 75, 42, 93, 63, 58, 75, 89, 67),
+                 heigth = c(161, 185, 174, 154, 188, 178, 170, 167, 181, 178),
+                 sex = factor(c("female", "male", "male", "female", "male", "male", "female", "male", "male", "female")))
+df
+```
+```{r}
+plot(df$weight, df$heigth, type = "n", xlab = "weight", ylab = "heigth", main = "Weight vs heigth", family = "Montserrat")
+points(df$weight[df$sex == "male"], df$heigth[df$sex == "male"], col = "black", pch = 19, cex = 1.2)
+points(df$weight[df$sex == "male"], df$heigth[df$sex == "male"], col = "dodgerblue", pch = 19)
+points(df$weight[df$sex == "female"], df$heigth[df$sex == "female"], col = "black", pch = 19, cex = 1.2)
+points(df$weight[df$sex == "female"], df$heigth[df$sex == "female"], col = "salmon", pch = 19)
+par(family = "Montserrat")
+legend("bottomright",
+       legend = c("male", "female"),
+       pch = c(19, 19),
+       col = c("dodgerblue", "salmon"))
+```
+```{r}
+library(ggplot2)
+
+qplot(df$weight, df$heigth, main = "Weight vs heigth", xlab = "weight", ylab = "heigth", ) +
+  geom_point(color = "black", size = 4.4) +
+  geom_point(size = 4, mapping = aes(color = df$sex)) +
+  labs(color = "") +
+  theme(plot.title = element_text(hjust = 0.5, size = 18, margin=margin(b = 15, t = 15)),
+        axis.title.y = element_text(margin = margin(r = 15, l = 15)),
+        axis.title.x = element_text(margin = margin(t = 15, b = 15)),
+        text = element_text(family = "montserrat", color = "#333333"),
+        axis.line = element_line(arrow = arrow(length = unit(0.3, "cm")), color = "#444444"))
+```
+
+

@@ -1,0 +1,27 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+# show the first 20 items in "methods" package
+ls("package:methods")[1:20]
+cat("# items:", length(ls("package:methods")))
+```
+```{r}
+# determine enviroments of these
+environment(read.table)
+environment(data)
+environment(matrix)
+environment(jpeg)
+```
+```{r}
+# test whether smoothScatter function is contained within graphics package
+any(ls("package:graphics") == "smoothScatter")
+```
+```{r}
+args(data.frame)
+```
+```{r}
+args(plot.default)
+```
+

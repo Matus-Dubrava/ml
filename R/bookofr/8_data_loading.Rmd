@@ -1,0 +1,32 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+# read csv file
+df <- read.table(file = "~/documents/machine_learning/datasets/avocado.csv",
+                 header = T, sep = ",", na.strings = "*",
+                 stringsAsFactors = F)
+df <- df[, -1]
+head(df)
+```
+```{r}
+library(car)
+library(ggplot2)
+
+Duncan$prestige.level <- as.factor(ifelse(Duncan$prestige <= 80, "low", "high"))
+head(Duncan)
+```
+```{r}
+qplot(x = Duncan$education, y = Duncan$prestige, xlim = c(0, 100), ylim = c(0, 100), xlab = "Education", 
+      ylab = "Prestige", main = "Education vs Prestige") +
+  geom_point(size = 3.4, color = "black") +
+  geom_point(mapping = aes(color = Duncan$prestige.level), size = 3) +
+  labs(color = "Prestige") +
+  theme(axis.title.x = element_text(margin = margin(t = 15, b = 15)),
+        axis.title.y = element_text(margin = margin(l = 15, r = 15)),
+        text = element_text(family = "montserrat", color = "#444444"),
+        axis.line = element_line(arrow = arrow(length = unit(0.25, units = "cm"))),
+        plot.title = element_text(hjust = 0.5, margin = margin(t = 15, b = 15)))
+```
+
