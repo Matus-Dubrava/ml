@@ -1,0 +1,109 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+# recursive factorial function that throws an error if the supplied argument is a negative integer
+fact <- function(n) {
+  if (n < 0) {
+    stop(paste("Expected positive integer. Received:", n))
+  }
+  
+  if (n == 0) {
+    return(1)
+  } else {
+    return(n * fact(n - 1))
+  }
+}
+
+fact(5)
+fact(8)
+fact(-8)
+```
+```{r}
+# invert each matrix in a list 
+invert.matrices <- function(x, noninv = NA, nonmat = "not a matrix", silent = TRUE) {
+  # check whether the supplied "x" argument is a list
+  if (!is.list(x)) {
+    stop("Expected list as the first argument")
+  }
+  
+  # supplied list should have at least one member
+  if (length(x) == 0) {
+    stop("Expected list of non-zero length")
+  }
+  
+  if (!is.character(nonmat)) {
+    warning("Expected nonmat to be a string, trying to perform conversion")
+    nonmat <- as.character(nonmat)
+  }
+  
+  result <- list()
+  counter <- 0
+  
+  for (i in 1:length(x)) {
+    counter <- counter + 1
+    if (!is.matrix(x[[i]])) {
+      result[[i]] <- noninv
+    } else {
+      att <- try(solve(x[[i]]), silent = silent)
+      if (class(att) == "try-error") {
+        result[[i]] <- noninv
+      } else {
+        result[[i]] <- att 
+      } 
+    }
+  }
+  
+  return(result)
+}
+
+x <- list(1:4, matrix(1:4, 1, 4), matrix(1:4, 4, 1), matrix(1:4, 2, 2))
+invert.matrices(x, silent = FALSE, noninv = "unsuitable matrix")
+```
+```{r}
+invert.matrices(x = "hello")
+```
+```{r}
+# progress bar
+prog.test <- function(n, ...) {
+  result <- 0
+  progbar <- txtProgressBar(min = 0, max = n, ...)
+  for (i in 1:n) {
+    result <- result + 1
+    Sys.sleep(0.5)
+    setTxtProgressBar(progbar, value = i)
+  }
+  close(progbar)
+  return(result)
+}
+
+prog.test(10, style = 3, char = "r")
+```
+```{r}
+# recursive fibonacci function with progress bar
+fibo <- function(n) {
+  # here max is the time complexity of the fibonacci function which is "golden-ration"^2
+  progbar <- txtProgressBar(min = 0, max = 1.61 ^ n, style = 3, char = "=")
+  
+  fibo_ <- function(n) {
+    setTxtProgressBar(progbar, value = getTxtProgressBar(progbar) + 1)
+    if (n <= 2) {
+      return(1)
+    } else {
+      return(fibo_(n - 1) + fibo_(n - 2))
+    }
+  }
+  
+  res <- fibo_(n)
+  close(progbar)
+  return(res)
+}
+
+fibo(30)
+```
+
+
+
+

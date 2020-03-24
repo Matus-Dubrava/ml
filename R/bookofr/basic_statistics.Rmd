@@ -1,0 +1,156 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+# obtain the proportion of seismic events in the quakes dataset that occured at a depth
+# of 300km or deeper (rounded to 2 decimal places)
+library(datasets)
+library(magrittr)
+head(quakes)
+```
+```{r}
+round(nrow(quakes[quakes$depth >= 300,]) / nrow(quakes), digits = 2) 
+```
+```{r}
+# calculate mean and median magnitude of the events that happened at a depth of 300 or deeper
+mean(quakes[quakes$depth >= 300, "mag"])
+
+median(quakes[quakes$depth >= 300, "mag"])
+```
+```{r}
+# using chickwts dataset, compute mean weight of chicks for each fead type using for-loop
+head(chickwts)
+```
+```{r}
+for (feedtype in levels(chickwts$feed)) {
+  cat(feedtype, ":", mean(chickwts[chickwts$feed == feedtype, "weight"]), "\n")
+}
+```
+```{r}
+# compute the same using tapply 
+tapply(X = chickwts$weight, INDEX = chickwts$feed, FUN = mean)
+```
+```{r}
+# using InsectSprays dataset
+head(InsectSprays)
+```
+```{r}
+# get counts of the "count" variable
+table(InsectSprays$count)
+```
+```{r}
+# find total insect count by each spray type
+tapply(X = InsectSprays$count, INDEX = InsectSprays$spray, FUN = sum)
+```
+```{r}
+# compute the percentage of agricultural units in each spray type group that had at 
+# least 5 bugs on them
+for (spraytype in levels(InsectSprays$spray)) {
+  more.than.five <- nrow(InsectSprays[InsectSprays$spray == spraytype & InsectSprays$count >= 5,])
+  total <- nrow(InsectSprays[InsectSprays$spray == spraytype,])
+  cat(spraytype, ": ", round((more.than.five / total) * 100, digits = 0), "%", "\n", sep = "")
+}
+```
+```{r}
+# use tapply to obtain the same result 
+tapply(X = InsectSprays$count, INDEX = InsectSprays$spray, FUN = function(x) {
+  return(round(sum(x >= 5) / length(x) * 100))
+})
+```
+```{r}
+# using chickwts dataset, compute 10th, 30th and 90th percentile
+quantile(chickwts$weight, c(0.1, 0.3, 0.9))
+```
+```{r}
+# find which feed type is associated with the highest sample variance of weights, using tapply
+(vars <- tapply(X = chickwts$weight, INDEX = chickwts$feed, FUN = var))
+names(vars)[which.max(vars)]
+```
+```{r}
+# using quakes dataset
+# find the IQR of the recored depths
+IQR(quakes$depth)
+```
+```{r}
+# find 5-number summary of all magnitudes that occured at a depth of 400km and deeper
+# do the same for magnitudes at a depth of 400km and less
+quakes$mag[quakes$depth >= 400] %>% quantile(c(0, 0.25, 0.5, 0.75, 1))
+quakes$mag[quakes$depth < 400] %>% quantile(c(0, 0.25, 0.5, 0.75, 1))
+```
+```{r}
+# create a new variable for quakes dataset, called depthcat, that will contain 
+# categorical representation of the depth in 4 equally spaced bins 
+cuts <- 0:4 * ((max(quakes$depth) - min(quakes$depth)) / 4) + 40
+depthcat <- quakes$depth %>% cut(cuts, include.lowest = TRUE, right = FALSE)
+quakes$depthcat <- as.factor(depthcat)
+levels(quakes$depthcat)
+```
+```{r}
+# find mean and standard deviation of magnitudes associated with each category
+quakes$mag %>% tapply(INDEX = quakes$depthcat, mean)
+cat("\n")
+quakes$mag %>% tapply(INDEX = quakes$depthcat, var)
+```
+```{r}
+# find 0.8 quantile of the magnitudes split by depth category
+quakes$mag %>% tapply(INDEX = quakes$depthcat, quantile, probs = 0.8)
+```
+```{r}
+# working with mtcars dataset
+head(mtcars)
+```
+```{r}
+# compute correlation coefficient of hp and qsec
+cor(mtcars$hp, mtcars$qsec)
+```
+```{r}
+# use "am" (transmission type) to create a new factor called tranfac with values automatic and manual
+mtcars$tranfac <- factor(ifelse(mtcars$am == 0, "automatic", "manual"))
+levels(mtcars$tranfac)
+```
+```{r}
+# plot hp (horsepower) vs qsec (quarter-mile per second) and differentiate between automatic and manual transmission
+library(ggplot2)
+
+qplot(x = mtcars$hp, y = mtcars$qsec, xlab = "Horsepower", ylab = "1/4 mile time", main = "Horsepower vs quarter mile time") +
+  geom_point(mapping = aes(color = mtcars$tranfac), size = 3) +
+  labs(color = "Transmission") +
+  theme(plot.title = element_text(hjust = 0.5, margin = margin(t = 15, b = 15), size = 18),
+        axis.title.x = element_text(margin = margin(t = 10, b = 10)),
+        axis.title.y = element_text(margin = margin(l = 10, r = 10)),
+        text = element_text(family = "montserrat", color = "#444444"),
+        axis.line = element_line(arrow = arrow(length = unit(0.3, "cm")))) 
+  
+```
+```{r}
+# compare cor between hp and qsec based separately for each transmission type
+cat("manual: ")
+cor(mtcars$hp[mtcars$tranfac == "manual"], mtcars$qsec[mtcars$tranfac == "manual"])
+cat("automatic: ")
+cor(mtcars$hp[mtcars$tranfac == "automatic"], mtcars$qsec[mtcars$tranfac == "automatic"])
+cat("both: ")
+cor(mtcars$hp, mtcars$qsec)
+```
+```{r}
+# working with chickwts
+# plot weights of the chicks that are fed with sunflowers
+weights <- chickwts$weight[chickwts$feed == "sunflower"]
+
+qplot(x = weights, y = rep(0, length(weights)), ylab = "") +
+  geom_abline(slope = 0, intercept = 0, color = "#777777") +
+  geom_point(color = "dodgerblue", size = 2.5)
+```
+```{r}
+# compute IQR and std for chicks fed with sunflowers
+IQR(weights)
+sd(weights)
+```
+```{r}
+# identify the chick with the lowest weight, remove it, and compute the above statistics again
+weights <- weights[-c(which.min(weights))]
+IQR(weights)
+sd(weights)
+```
+
+

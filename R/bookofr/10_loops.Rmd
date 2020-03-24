@@ -1,0 +1,237 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+vec1 <- c(2, 1, 1, 3, 2, 1, 0)
+vec2 <- c(3, 8, 2, 2, 0, 0, 0)
+
+ifelse((vec1 + vec2) > 3, vec1 * vec2, vec1 + vec2)
+```
+```{r}
+# take a square character matrix, if any of the elements on the main diagonal starts with lowercase or uppercase g,
+# replace these elements with "HERE", otherwise replace the whole matrix with the identity matrix of the same size
+
+# long version
+replace.gs <- function(A) {
+  replaced <- F
+  
+  for (row in 1:nrow(A)) {
+    for (col in 1:ncol(A)) {
+      if (grepl("^(g|G)", A[row, col])) {
+        if (row == col) {
+          A[row, col] <- "HERE"
+          replaced <- T 
+        }
+      }
+    }
+  }
+  
+  if (!replaced) {
+    A <- diag(nrow(A))
+  }
+  
+  return(A)
+}
+
+# shorter version
+replace.gs1 <- function(A) {
+  if (any(grepl("^(g|G)", diag(A)))) {
+    diag(A) <- ifelse(grepl("^(g|G)", diag(A)), "HERE", diag(A))
+    return(A)
+  }
+  
+  return(diag(nrow(A)))
+}
+
+A <- matrix(as.character(1:16), 4, 4)
+replace.gs1(A)
+
+A <- matrix(c("DANDELION", "Hyacintus", "Gerbera", "MARIGOLD", "geranium", "ligularia",
+              "Pachysandra", "SNAPDRAGON", "GLADIOLUS"), nrow = 3)
+replace.gs1(A)
+
+A <- matrix(c("GREAT", "excercises", "right", "here"), nrow = 2)
+replace.gs1(A)
+```
+```{r}
+# example of for-loop
+
+foo <- list(aa = c(3.4, 1), bb = matrix(1:4, 2, 2), cc = matrix(c(T, T, F, T, F, F), 3, 2),
+            dd = "string here", ee = matrix(c("red", "green", "blue", "yellow")))
+foo
+```
+```{r}
+is.mat <- rep("No", length(foo))
+nr <- rep(NA, length(foo))
+nc <- rep(NA, length(foo))
+names <- names(foo)
+data.type <- rep(NA, length(foo))
+
+for (i in 1:length(foo)) { 
+  if (is.matrix(foo[[i]])) {
+    is.mat[i] <- "Yes"
+    nr[i] <- nrow(foo[[i]])
+    nc[i] <- ncol(foo[[i]])
+    data.type[i] <- class(as.vector(foo[[i]]))
+  }
+}
+
+df <- data.frame(name = names, is.mat = is.mat, nr = nr, nc = nc, data.type = data.type)
+df
+```
+```{r}
+vec1 <- 5:7
+vec2 <- 9:6
+A <- matrix(NA, nrow = length(vec1), ncol = length(vec2))
+
+for (i in 1:length(vec1)) {
+  for (j in 1:length(vec2)) {
+    A[i, j] <- vec1[i] * vec2[j]
+  }
+}
+A
+
+# rewrite the above code using a single loop
+A <- matrix(NA, nrow = length(vec1), ncol = length(vec2))
+for (i in 1:length(vec1)) {
+  A[i,] <- vec2 * vec1[i]
+}
+A
+```
+```{r}
+# write a function that will take a character vector and return associated values using switch
+names.to.numbers <- function(names) {
+  res <- rep(NA, length(names))
+  for (i in 1:length(names)) {
+    res[i] <- switch(EXPR = names[i], Homer = 12, Marge = 34, Bart = 56, Lisa = 78, Maggie = 90, NA)
+  }
+  return(res)
+}
+
+names <- c("Peter", "Homer", "Lois", "Stewie", "Maggie", "Bart")
+names.to.numbers(names)
+```
+```{r}
+# count the number of matices inside of a list, where list can nest other lists, those can contain matrices as 
+# well but they can't contain additional lists 
+
+count.matrices <- function(li) {
+  count <- 0
+  
+  for (i in 1:length(li)) {
+    if (is.matrix(li[[i]])) {
+      count <- count + 1
+    } else if (is.list(li[[i]])) {
+      for (j in 1:length(li[[i]])) {
+        if (is.matrix(li[[i]][[j]])) {
+          count <- count + 1
+        }
+      }
+    }
+  }
+  
+  return(count)
+}
+
+mylist <- list(aa = c(3.4, 1), bb = matrix(1:4, 2, 2), cc = matrix(c(T, T, F, T, F, F), 3, 2), dd = "string here",
+               ee = list(c("hello", "you")), matrix(c("hello", "there")),
+               ff = matrix(c("red", "green", "yellow", "blue")))
+count.matrices(mylist)
+
+mylist <- list("tricked you", as.vector(matrix(1:6, 3, 2)))
+count.matrices(mylist)
+
+mylist <- list(list(1, 2, 3), list(c(3, 2), 2),
+               list(c(1, 2), matrix(c(1, 2))),
+               rbind(1:10, 100:91))
+count.matrices(mylist)
+```
+```{r}
+# recursive version that handles any amount of nesting 
+count.matrices.rec <- function(li) {
+  count <- 0
+  
+  for (i in 1:length(li)) {
+    if (is.matrix(li[[i]])) {
+      count <- count + 1
+    } else if (is.list(li[[i]])) {
+      count <- count + count.matrices.rec(li[[i]])
+    }
+  }
+  
+  return(count)
+}
+
+mylist <- list(aa = c(3.4, 1), bb = matrix(1:4, 2, 2), cc = matrix(c(T, T, F, T, F, F), 3, 2), dd = "string here",
+               ee = list(c("hello", "you")), matrix(c("hello", "there")),
+               ff = matrix(c("red", "green", "yellow", "blue")))
+count.matrices.rec(mylist)
+
+mylist <- list("tricked you", as.vector(matrix(1:6, 3, 2)))
+count.matrices.rec(mylist)
+
+mylist <- list(list(1, 2, 3), list(c(3, 2), 2),
+               list(c(1, 2), matrix(c(1, 2))),
+               rbind(1:10, 100:91))
+count.matrices.rec(mylist)
+
+mylist <- list(list(1, 2, 3), list(c(3, 2), 2),
+               list(c(1, 2), matrix(c(1, 2)), 
+                    list(matrix(1:4, 2, 2),
+                         list(matrix(c(1, 2))))),
+               rbind(1:10, 100:91))
+count.matrices.rec(mylist)
+```
+```{r}
+# implicit loops
+A <- matrix(1:12, nrow = 3, byrow = T)[c(3, 2, 1),]
+A
+
+# compute products of column elements
+apply(A, MARGIN = 2, FUN = prod)
+
+# transpose all matrices in a given list
+li <- list(matrix(c(T, F, T, T), 2, 2),
+           matrix(c("a", "c", "b", "z", "p", "q"), 3, 2),
+           matrix(1:8, 2, 4))
+lapply(li, FUN = t)
+```
+```{r}
+foo <- 5
+bar <- c(2, 3, 1.1, 4, 0, 4.1, 3)
+
+# write a loop that will divide foo by bar, stop if on of the results is Inf
+res <- rep(NA, length(bar))
+for (i in 1:length(res)) {
+  if (foo / bar[i] == Inf) {
+    break
+  } else {
+    res[i] <- foo / bar[i]
+  }
+}
+res
+
+# now, just skip those infinities
+res <- ifelse(foo / bar == Inf, NA, foo / bar)
+res
+```
+```{r}
+# write a loop that will process list of matrices and tries to create a product of each pair
+
+matlist1 <- list(matrix(1:4, 2, 2), matrix(1:4), matrix(1:8, 4, 2))
+res <- list()
+counter <- 0
+
+for (i in 1:length(matlist1)) {
+  for (j in 1:length(matlist1)) {
+    counter <- counter + 1
+    if (ncol(matlist1[[i]]) != nrow(matlist1[[j]])) {
+      res[[counter]] = "not possible"
+    } else {
+      res[[counter]] = matlist1[[i]] %*% matlist1[[j]]
+    }
+  }
+}
+res
+```
