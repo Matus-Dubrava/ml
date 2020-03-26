@@ -1,0 +1,106 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+# we have a sample of 6 studens out of the whole population that sit the test,
+# results (score out of 65), have a sample mean of 41.1
+# standard deviation of the marks of this test is known to be 11.3
+
+# find the standard error associated with the mean test score
+std <- 11.3
+mean <- 41.1
+size <- 6
+(se <- std / sqrt(6))
+
+# assuming that the scores are normally distributed, what is the probability that the mean
+# score lies between 45 and 55 if we repeated the test using different sample of the same size (6 different students)
+
+# let's plot the associated t-distribution with 5 (n - 1) degrees of freedom, this 
+# is a distribution of location of sample means relative to true mean
+scores <- 0:65
+scores.standardized <- (scores - mean) / se
+plot(scores.standardized, dt(scores.standardized, df = 5), type = "l", main = "T-distribution(df = 5)",
+     ylab = "prob")
+ab.standardized = (c(45, 55) - mean) / se
+abline(v = ab.standardized, col = "brown", lty = 2)
+
+scores.standardized.sub <- scores.standardized[scores.standardized >= ab.standardized[1] & scores.standardized <= ab.standardized[2]]
+score.probs.sub <- dt(scores.standardized.sub, df = 5)
+polygon(cbind(c(ab.standardized[1], scores.standardized.sub, ab.standardized[2]),
+              c(0, score.probs.sub, 0)), col = "brown")
+abline(h = 0, col = "gray")
+axis(side = 1, at = round(c(ab.standardized[1], ab.standardized[2]), 2), col = "brown")
+
+# computing the probability 
+prob <- round(pt(ab.standardized[2], df = 5) - pt(ab.standardized[1], df = 5), 3)
+text(2, 0.3, paste("P = ", prob), col = "brown")
+```
+```{r}
+# those who get th less than half the questions right receive failing grade (F). Find the probability that 
+# the average score is F
+
+# using normal distribution with mean 41.1 and sd = se (4.613206)
+scores <- seq(0, 65, length.out = 10000)
+mid.score <- 65 * 0.5
+score.probs <- dnorm(scores, 44.1, se)
+plot(scores, score.probs, type = "l")
+
+score.mask <- scores <= mid.score
+polygon(cbind(c(0, scores[score.mask], mid.score),
+              c(0, score.probs[score.mask], 0)),
+        col = "brown")
+abline(v = c(0, mid.score), col = "brown", lty = 2)
+
+prob <- pnorm(mid.score, mean = 44.1, sd = se)
+text(15, 0.04, paste("P(X <= 32.5) =", round(prob, 3)), col = "brown")
+```
+```{r}
+# marketing company is deciding between drinks A and B
+# out of 140 asked, only 0.35 prefer drink A
+
+# check whether it is normal distribution to represent sampling distribution of this size
+# (both n*p and n*(1-p) should be above 5)
+140 * 0.35
+140 * (1 - 0.35)
+# the answer is yes
+
+# what is the probability that in another sample of the same size, the proportion of
+# people who like drink A is greater than 0.4?
+
+# let's model the normal distribution 
+p <- .35
+n <- 140
+se <- sqrt((p * (1 - p)) / 140)
+
+proportions <- seq(0, 1, length.out = 10000)
+probs <- dnorm(proportions, p, se)
+plot(proportions, probs, type = "l")
+
+proportions.mask <- proportions >= .4
+polygon(c(.4, proportions[proportions.mask], 1),
+        c(0, probs[proportions.mask], 0),
+        col = "brown")
+abline(v = c(.4, 1), col = "brown", lty = 2)
+
+prob <- 1 - pnorm(.4, p, se)
+text(.6, 1, paste("P(X >= 0.4) =", round(prob, 3)), col = "brown")
+```
+```{r}
+# find two values that identify the central 80 percent of values of the proportion of interest
+quantiles <- qnorm(c(.1, .9), p, se)
+plot(proportions, probs, type = "l", axes = FALSE)
+
+proportions.mask <- proportions >= quantiles[1] & proportions <= quantiles[2]
+abline(v = quantiles, col = "brown", lty = 2)
+polygon(cbind(c(quantiles[1], proportions[proportions.mask], quantiles[2]),
+              c(0, probs[proportions.mask], 0)),
+        col = "brown")
+axis(side = 1, at = round(c(0, quantiles, 1), 3))
+axis(side = 2, at = seq(0, 10, by = 2))
+```
+```{r}
+
+```
+
+

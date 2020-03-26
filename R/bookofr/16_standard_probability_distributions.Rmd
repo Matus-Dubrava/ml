@@ -1,0 +1,191 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+# there are 13 bird-viewing platforms, there is a 75% change of seeing birds at all of these 
+# platforms all at any given time
+
+# visualize the binomial probability distribution
+barplot(dbinom(0:13, 13, 0.75), names.arg = k)
+```
+```{r}
+# what is the probability of seeing birds at all platforms 
+dbinom(13, 13, .75)
+```
+```{r}
+# probability of seeing birds at more than 9 platforms 
+1 - pbinom(9, 13, .75)
+```
+```{r}
+# what is the probability of seeing birds at between 8 and 11 platforms (inclusive)
+pbinom(11, 13, .75) - pbinom(7, 13, .75)
+
+# which is equal to
+sum(dbinom(8:11, 13, .75))
+```
+```{r}
+# what is the probability of seeing birds at fewer than 9 sites
+pbinom(8, 13, .75)
+```
+```{r}
+# simulate 10 different visits (10 different trials)
+(outcome <- rbinom(10, size = 13, prob = .75))
+```
+```{r}
+# compute mean and standard deviation of this distribution
+
+# mean = n*p
+# var  = n*p*(1-p)
+cat("mean:", 13 * .75, "\n")
+cat("std:", sqrt(13 * .75 * .25))
+```
+```{r}
+# The average number of cars passing by in a 120 min. window is 107. (poisson distribution)
+
+# what is the probability that more than 100 cars pass by in any given 120 min. window
+1 - ppois(100, 107)
+```
+```{r}
+# what is the probability that no cars pass
+ppois(0, 107)
+```
+```{r}
+# plot the poisson mass function
+plot(60:150, dpois(60:150, 107), type = "l")
+```
+```{r}
+# produce 260 trials of from this distribution, plot it as a histogram
+outcomes <- rpois(260, 107)
+hist(outcomes, breaks = seq(60, 150, by = 5))
+```
+```{r}
+# height of trees found in the forest is uniformly distributed between 3 and 70 feet
+
+# what is the probability that you encounter a tree shorter that 5.5 feet 
+punif(5.5, 3, 70)
+
+# what is the height that marks the cutoff point of the tallest 15 percent of trees
+qunif(.85, 3, 70)
+
+# compute mean height 
+(m <- (3 + 70) / 2) # same as qunif(.5, 3, 70)
+
+# compute standard deviation
+(std <- sqrt((70 - 3) ^ 2 / 12))
+
+# compute the probability that a randomly picked tree falls within the range of 
+# 1/2 standard deviation from the mean
+punif(m + std/2, 3, 70) - punif(m - std/2, 3, 70)
+```
+```{r}
+# plot the density function
+heights <- seq(3, 70, length.out = 10000)
+plot(heights, dunif(heights, 3, 70), type = "l", ylab = "density", axes = FALSE)
+axis(side = 2, at = c(0, 1/(70 - 3)))
+axis(side = 1, at = sort(c(seq(0, 70, by = 10), 3)))
+```
+```{r}
+# run a simulation of picking n random trees and observing the cutoff point for the 15% tallest trees
+sim.trees <- function(n.trials, n.picks) {
+  res <- 0
+  for (i in 1:n.trials) {
+    heights <- runif(n.picks, 3, 70)
+    heights <- sort(heights)
+    idx <- as.integer(n.picks * 0.85)
+    res <- res + heights[idx]
+  }
+  return(res / n.trials)
+} 
+
+cat("10 picks:", sim.trees(100, 10), "\n")
+cat("1000 picks:", sim.trees(100, 1000))
+```
+```{r}
+# time to complete certain task X is normally distributed with a mean of 17 minutes and a standard deviation of 4.5
+
+# what is the probability a task will take more than 20 minutes
+1 - pnorm(20, mean = 17, sd = 4.5)
+
+# what is the probability that a task will take somewhere between 5 and 10 minutes
+pnorm(10, mean = 17, sd = 4.5) - pnorm(5, mean = 17, sd = 4.5)
+
+# find a time that marks off the slowest 10 percent tasks
+qnorm(0.1, mean = 17, sd = 4.5)
+
+times <- seq(17 - 4 * 4.5, 17 + 4 * 4.5, length.out = 10000)
+plot(times, dnorm(times, mean = 17, sd = 4.5), type = "l", main = "X~NORM(17, 4.5)", ylab = "density")
+abline(v = qnorm(.1, mean = 17, sd = 4.5), col = "brown")
+```
+```{r}
+par(mfrow = c(1, 2))
+observations1 <- rnorm(10, mean = 17, sd = 4.5)
+observations2 <- rnorm(10000, mean = 17, sd = 4.5)
+qqnorm(observations1, main = "Q-Q plot (10 observations)")
+qqline(observations1)
+
+qqnorm(observations2, main = "Q-Q plot (10000 observations)")
+qqline(observations2)
+```
+```{r}
+# length of blades of grass follow normal distribution with variance of 2mm and mean of 10mm
+m <- 10
+std <- sqrt(2)
+
+# find the probability that a blade of grass is between 9.5 and 11 mm
+pnorm(11, m, std) - pnorm(9.5, m, std)
+
+# find standardized values for 9.5 and 11mm and repeat the above step
+(a.std <- (9.5 - m) / std)
+(b.std <- (11 - m) / std)
+pnorm(b.std) - pnorm(a.std) 
+
+# below which value are the shortest 2.5 percent of blade lengths
+qnorm(.025, m, std)
+
+# standardize the above answer
+(qnorm(.025, m, std) - m) / std
+```
+```{r}
+# certain geyser erupts 3500 a year, assume that we want to model time between consecutive eruptions,
+# evaluate parameter of the distribution with respect to a time scale in days (assume 365.25 days a year)
+
+# this can be modelled via exponential distribution
+(lambda <- 3500 / 365.25) # rate per day
+
+# plot the density function of interest, what is the mean wait in days between eruptions?
+days <- seq(0, 10, length.out = 10000)
+m <- 1 / lambda # mean wait 
+plot(days, dexp(days), type = "l")
+abline(v = m, col = "brown")
+text(x = 2.5, y = .9, paste("mean: ", round(m, 3), " days (", round(m * 24 * 60, 2), "min)", sep = ""), col = "brown")
+```
+```{r}
+# what is the probability of waiting less than 30 minutes for the next eruption
+pexp(30 / (24 * 60), rate = lambda)
+```
+```{r}
+# what waiting time defines the longest 10 percent of waits (in hours)?
+qexp(.9, lambda) * 24
+```
+```{r}
+# let X represent the time until failure of a product with average lifetime being 11 years,
+# which gives use rate of 1/11
+
+# company offer a 5-year warranty, what is the probability that a randomly selected owner of this
+# product makes use of this warranty
+lambda1 <- 1/11
+pexp(5, lambda1)
+
+# another company offers 6-year warranty  but their product lasts only for 9 years on average,
+# what are the chances of making use of this warranty 
+lambda2 <- 1/9
+pexp(6, lambda2)
+
+# determine probabilities that products of both of these companies last for more than 15 years
+comp1 <- 1 - pexp(15, lambda1)
+comp2 <- 1 - pexp(15, lambda2)
+cat("comp 1:", round(comp1, 3), "\n")
+cat("comp 2:", round(comp2, 3))
+```
+

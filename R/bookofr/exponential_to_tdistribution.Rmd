@@ -1,0 +1,61 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+# modeling observations taken from exponential distribution as t-distribution
+
+# we know that the rate at which cars pass by is 107 in 2 hours
+lambda <- 170/120 # rate per minute
+
+minutes <- seq(0, 20, length.out = 10000)
+probs <- dexp(times, rate = lambda)
+plot(minutes, probs, type = "l")
+```
+```{r}
+# what is the probability that we need to wait more than 40 seconds to see some car
+1 - pexp(40/60, rate = lambda)
+
+# what is the probability that we see a car in lest than 30 seconds
+pexp(30/60, rate = lambda)
+
+# what is the probability that we see a car between mean time and 40 seconds
+minutes.mean <- 1 / lambda
+pexp(minutes.mean, rate = lambda) - pexp(40/60, rate = lambda)
+```
+```{r}
+# now, let's model this as t-distribution
+
+# pick random samples from the above distribution
+sampled.minutes <- rexp(62, rate = lambda)
+
+# compute mean of the samples
+sample.mean <- mean(sampled.minutes)
+
+# compute standard deviation of the sample 
+sample.std <- sd(sampled.minutes)
+
+# compute standard error
+sample.se <- std / sqrt(length(sampled.minutes))
+
+# plot associated t-distribution
+x <- seq(-10, 10, length.out = 10000)
+x.prob <- dt(x, df = 61)
+plot(x, x.prob, type = "l")
+```
+```{r}
+# what is the probability that we need to wait more than 40 seconds to see some car
+# => we need to convert seconds to minutes and standardize the value based on sample mean and standard error
+x <- ((40/60) - sample.mean) / sample.se
+1 - pt(x, df = 61)
+
+# what is the probability that we see a car in lest than 30 seconds
+x <- ((30/60) - sample.mean) / sample.se
+pt(x, df = 61)
+
+# what is the probability that we see a car between mean time and 40 seconds
+x <- 0
+y <- ((40/60) - sample.mean) / sample.se
+pt(y, df = 61) - .5
+```
+

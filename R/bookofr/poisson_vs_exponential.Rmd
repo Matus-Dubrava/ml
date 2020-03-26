@@ -1,0 +1,38 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+# poisson vs exponential distribution 
+
+# example: counting passing by cars, we have observed that on average there are 107 cars passing by every 120 minutes
+
+# poisson: tells us probability of how many cars we can expect to observe in a certain interval 
+# exponential: tells us probability of how long it will take to before we observe a car (time between occurances of 
+# an event)
+
+rate <- 107/120 # rate per minute
+
+par(mfrow = c(1, 2))
+
+# poisson dist.
+n.cars <- 60:150
+pois.mean <- 107 # this is equvalent of lambda 
+plot(n.cars, dpois(n.cars, 107), type = "l", main = "X~POIS(107)", ylab = "density")
+abline(v = pois.mean, col = "brown")
+
+# exponential dist
+n.minutes <- seq(1, 20, length.out = 10000)
+exp.mean <- 1 / rate
+plot(n.minutes, dexp(n.minutes, rate = rate), type = "l", main = "X~EXP(107/120)", ylab = "density")
+abline(v = exp.mean, col = "brown")
+```
+```{r}
+# what is the probability that we will observe 120 or less cars in 2 hours
+ppois(120, 107)
+```
+```{r}
+# equivalently, we can ask about probabiltity of seeing a car after 30 seconds or more of waiting
+pexp(.5, rate)
+```
+

@@ -1,0 +1,46 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+# We record average time it takes for a runner to sprint 100 meters. There are 34 observations and the mean 
+# of these observations is 14.22 seconds. Assume that we know the standard deviation to be 2.9 seconds.
+# Construct 90% confidence interval for true mean.
+
+# Since we know the real standard deviation, we can use Normal distribution where we replace standard deviation with
+# standard error
+
+# compute standard error
+n.trials <- 34
+sample.mean <- 14.22
+std <- 2.9
+se <- std / sqrt(n.trials)
+
+times <- seq(12, 17, length.out = 10000)
+density <- dnorm(times, mean = sample.mean, sd = se)
+
+par(mfrow = c(1, 2))
+plot(times, density, type = "l", axes = FALSE, main = "known sd (normal dist.)")
+abline(v = sample.mean, col = "brown")
+
+# compute critical value - quantile value at 0.975
+crit.value <- qnorm(.95) # critical value is from standardized normal distribution
+ci <- sample.mean + (c(-1, 1) * crit.value) * se
+
+abline(v = ci, col = "brown", lty = 2)
+axis(side = 1, at = round(c(ci[1], sample.mean, ci[2]), 3))
+
+# compute the same but now the standard deviation is of a sample instead of the population
+# => we need to use t-distribution instead of standardized normal to find critical value
+crit.value <- qt(.95, df = n.trials - 1)
+ci <- sample.mean + (c(-1, 1) * crit.value) * se
+
+plot(times, density, type = "l", axes = FALSE, main = "estimated sd (t-dist.)")
+abline(v = sample.mean, col = "brown")
+
+abline(v = ci, col = "brown", lty = 2)
+axis(side = 1, at = round(c(ci[1], sample.mean, ci[2]), 3))
+```
+
+
+
