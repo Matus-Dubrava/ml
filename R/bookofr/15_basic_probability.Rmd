@@ -1,0 +1,63 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+# given discrete random variable X with and its associated probabilities
+x <- c(1, 2, 3, 4, 5)
+p <- c(0.1, 0.13, 0.21, 0.41, 0.15)
+
+# get cumulative probabilities
+cumsum(p)
+
+# what is the mean of x 
+(m <- sum(x * p))
+
+# what is the variance of x
+(v <- sum(p * (x - m)^2))
+
+# what is the standard deviation of x
+sqrt(v)
+
+# what is the probability that realization of x is at least 3
+sum(p[3:5])
+
+# visualize probability distribution
+barplot(height = p, names.arg = x, col = "skyblue", main = "Probability Mass Function")
+abline(v = m, col = "red", lwd = 2)
+```
+```{r}
+# given is a function
+my.dist <- function(w) {
+  res <- rep(0, length(w))
+  w.lower <- w >= 40 & w <= 65
+  w.upper <- w > 65 & w <= 90
+  
+  res[w.lower] <- (w - 40) / 625
+  res[w.upper] <- (90 - w) / 625
+  return(res)
+}
+
+my.dist.cumul <- function(w) {
+  res <- rep(0, length(w))
+  w.lower <- w >= 40 & w <= 65
+  w.upper <- w > 65 & w <= 90
+  w.max <- w > 90
+  
+  res[w.lower] <- (w ^ 2 - 80 * w + 1600) / 1250
+  res[w.upper] <- (180 * w - w ^ 2 - 6850) / 1250
+  res[w.max] <- 1
+  return(res)
+}
+
+my.dist(55.2)
+my.dist.cumul(55.2)
+
+# what is the probability of w being greater than 60
+1 - my.dist.cumul(60)
+
+# find probability of P(60.3 < W < 76.89)
+my.dist.cumul(76.89) - my.dist.cumul(60.3)
+```
+
+

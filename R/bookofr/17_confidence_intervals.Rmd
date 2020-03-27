@@ -41,6 +41,68 @@ abline(v = sample.mean, col = "brown")
 abline(v = ci, col = "brown", lty = 2)
 axis(side = 1, at = round(c(ci[1], sample.mean, ci[2]), 3))
 ```
+```{r}
+# random sample of 400 people is taken, 37 are left-handed and 11 are ambidextrous 
+
+# calculate the 99% confidence interval for the true proportion of left-handed-only people 
+n.samples <- 400
+p.hat <- 37 / 400
+se <- sqrt(p.hat * (1 - p.hat) / n.samples)
+
+crit.value <- qnorm(0.995)
+ci <- p.hat + c(-1, 1) * crit.value * se
+p.hat
+ci
+```
+```{r}
+# calculate the 99% confidence interval for the true proportion of people that are 
+# either left-handed or ambidextrous
+
+p.hat <- (37 + 11) / n.samples
+se <- sqrt(p.hat * (1 - p.hat) / n.samples)
+
+crit.value <- qnorm(0.995)
+ci <- p.hat + c(-1, 1) * crit.value * se
+p.hat
+ci
+```
+```{r}
+# set up a matrix of NAs with 5000 rows and 3 cols
+A <- matrix(rep(NA, 15000), nrow = 5000, ncol = 3)
+
+# using for loop, generate 5000 samples of size 300 from exponential distribution with rate equal to 0.1
+# then calculate sample mean and sample standard deviation of this sample, find 95% conf. interval from for the 
+# true mean from the appropriate sampling distribution
+for (i in 1:5000) {
+  samples <- rexp(n = 300, rate = 0.1)
+  
+  sample.mean <- mean(samples)
+  sample.sd <- sd(samples)
+  se <- sample.sd / sqrt(300)
+  
+  # true standard deviation is unknown therefore we will use t-distribution to find CI
+  crit.value <- qt(0.975, df = 299)
+  ci <- sample.mean + c(-1, 1) * crit.value * se
+  
+  # fill the matrix, first col. is lower bound of CI, second col. is upper bound of CI
+  # and the third col. is logical TRUE/FALSE indicating whether the CI contains the true
+  # mean of 1/alpha (true mean of the exponential distribution from which we obtained the samples)
+  A[i, ] <- c(ci, ifelse(1/0.1 >= ci[1] && 1/0.1 <= ci[2], TRUE, FALSE))
+}
+
+# find the proportion of TRUE values in the matrix's third column, it should be close to 95% 
+# (since it represents 95% confidence interval)
+mean(A[,3])
+```
+```{r}
+# take the first 100 CI from the matrix A and plot them in a single graph as horizontal lines
+plot(x = c(6, 14), y = c(1, 100), type = "n", xlab = "CI bounds", ylab = "nth CI", main = "CIs vs true mean")
+for (i in 1:100) {
+  lines(A[i, c(1, 2)], c(i, i), col = ifelse(A[i, 3], "gray", "red"))
+}
+abline(v = 1/0.1, col = "brown")
+```
+
 
 
 
