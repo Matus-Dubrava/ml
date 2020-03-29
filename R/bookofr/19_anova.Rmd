@@ -1,0 +1,219 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+library(datasets)
+head(chickwts)
+```
+```{r}
+levels(chickwts$feed)
+```
+```{r}
+(chick.means <- tapply(chickwts$weight, INDEX = chickwts$feed, mean))
+```
+```{r}
+boxplot(chickwts$weight~chickwts$feed)
+points(1:6, chick.means, pch = 4, cex = 1.5)
+```
+
+```{r}
+chick.sds <- tapply(chickwts$weight, INDEX = chickwts$feed, sd)
+max(chick.sds) / min(chick.sds)
+```
+```{r}
+chick.meancentered <- chickwts$weight - chick.means[as.numeric(chickwts$feed)]
+
+qqnorm(chick.meancentered)
+qqline(chick.meancentered)
+```
+```{r}
+chick.anova <- aov(chickwts$weight~chickwts$feed)
+summary(chick.anova)
+```
+```{r}
+# having these observations
+type1 <- c(93, 120, 65, 105, 115, 82, 99, 87, 100, 90, 78, 95, 93, 88, 110)
+type2 <- c(85, 45, 80, 28, 75, 70, 65, 55, 50, 40)
+type3 <- c(100, 75, 65, 40, 73, 65, 50, 30, 45, 50, 45, 55)
+type4 <- c(96, 58, 95, 90, 65, 80, 85, 95, 82)
+
+df <- data.frame(dephts <- c(type1, type2, type3, type4), 
+                 sites <- factor(c(rep(1, length(type1)),
+                                   rep(2, length(type2)),
+                                   rep(3, length(type3)),
+                                   rep(4, length(type4)))))
+names(df) <- c("depth", "site")
+df
+```
+```{r}
+# produce side-by-side boxplot, and additionally plot means of each group
+boxplot(df$depth~df$site)
+
+site.means <- tapply(df$depth, INDEX = df$site, FUN = mean)
+points(1:4, site.means, pch = 4, col = "brown", cex = 1.5)
+```
+```{r}
+# assuming independence, perform checks for normality and equality of 
+# variances
+
+# check for normality based qqplot
+# => subtract mean from each observation (based on the mean of each group)
+depths.meancetered <- df$depth - site.means[as.numeric(df$site)]
+qqnorm(depths.meancetered)
+qqline(depths.meancetered)
+```
+```{r}
+# check equality of variances 
+# => test whether the max sd (among the groups) divided by 
+# min sd is less than 2
+depth.sds <- tapply(df$depth, INDEX = df$site, FUN = sd)
+max(depth.sds) / min(depth.sds)
+```
+```{r}
+# perform one-way anova test
+dephts.anova <- aov(df$depth~df$site)
+summary(dephts.anova)
+```
+```{r}
+# using IRIS dataset, based on checks for normality and quality of variances
+# decide which of the four outcome measurements would be suitable for anova 
+# analysis (categorized by species)
+
+head(iris)
+```
+```{r}
+sep.len.means <- tapply(iris$Sepal.Length, INDEX = iris$Species, FUN = mean)
+sep.len.sds <- tapply(iris$Sepal.Length, INDEX = iris$Species, FUN = sd)
+
+sep.wd.means <- tapply(iris$Sepal.Width, INDEX = iris$Species, FUN = mean)
+sep.wd.sds <- tapply(iris$Sepal.Width, INDEX = iris$Species, FUN = sd)
+
+pet.len.means <- tapply(iris$Petal.Length, INDEX = iris$Species, FUN = mean)
+pet.len.sds <- tapply(iris$Petal.Length, INDEX = iris$Species, FUN = sd)
+
+pet.wd.means <- tapply(iris$Petal.Width, INDEX = iris$Species, FUN = mean)
+pet.wd.sds <- tapply(iris$Petal.Width, INDEX = iris$Species, FUN = sd)
+
+sd.diffs <- list(sep.len <- max(sep.len.sds) / min(sep.len.sds),
+                 sep.wd <- max(sep.wd.sds) / min(sep.wd.sds),
+                 pet.len <- max(pet.len.sds)/ min(pet.len.sds),
+                 pet.wd <- max(pet.wd.sds) / min(pet.wd.sds))
+names(sd.diffs) <- c("sepal.length", "sepal.width", "petal.length", "petal.width")
+sd.diffs
+```
+```{r}
+sep.len.meancent <- iris$Sepal.Length - sep.len.means[as.numeric(iris$Species)]
+sep.wd.meancent <- iris$Sepal.Width - sep.wd.means[as.numeric(iris$Species)]
+pet.len.meancent <- iris$Petal.Length - pet.len.means[as.numeric(iris$Species)]
+pet.wd.meancent <- iris$Petal.Width - pet.wd.means[as.numeric(iris$Species)]
+
+par(mfrow = c(2, 2))
+qqnorm(sep.len.meancent)
+qqline(sep.len.meancent)
+
+qqnorm(sep.wd.meancent)
+qqline(sep.wd.meancent)
+
+qqnorm(pet.len.meancent)
+qqline(pet.len.meancent)
+
+qqnorm(pet.wd.meancent)
+qqline(pet.wd.meancent)
+```
+```{r}
+# according to above findings, it seems that the sepal length and width are 
+# suitable for anova analysis
+
+sep.len.anova <- aov(iris$Sepal.Length~iris$Species)
+sep.wd.anova <- aov(iris$Sepal.Width~iris$Species)
+summary(sep.len.anova)
+summary(sep.wd.anova)
+```
+```{r}
+head(warpbreaks)
+```
+```{r}
+tapply(warpbreaks$breaks, INDEX = list(warpbreaks$wool, warpbreaks$tension),
+       FUN = mean)
+```
+```{r}
+wb.means <- aggregate(warpbreaks$breaks, 
+                      by = list(warpbreaks$wool, warpbreaks$tension),
+                      FUN = mean)
+wb.means
+```
+```{r}
+summary(aov(breaks~wool+tension+wool:tension, data = warpbreaks))
+```
+```{r}
+interaction.plot(x.factor = wb.means[,2], trace.factor = wb.means[,1],
+                 response = wb.means$x, trace.label = "wool",
+                 xlab = "tension", ylab = "mean warp breaks")
+```
+```{r}
+library(MASS)
+head(survey)
+```
+```{r}
+boxplot(survey$Age~survey$Smoke)
+```
+```{r}
+age.means <- tapply(survey$Age, INDEX = survey$Smoke, FUN = mean)
+age.meancent <- survey$Age - age.means[as.numeric(survey$Smoke)]
+qqnorm(age.meancent)
+qqline(age.meancent)
+```
+```{r}
+kruskal.test(Age~Smoke, data = survey)
+```
+```{r}
+# in quakes dataset, create new factor variable that groups depths into
+# following categories: (0, 200], (200, 400], (400, 680]
+depthcat <- cut(x = quakes$depth, breaks = c(0, 200, 400, 680))
+quakes$depthcat <- depthcat
+head(quakes)
+```
+```{r}
+# decide whether a one-way ANOVA or Kruskal-Wallis test is more appropriate
+# to use to compare the distributions of the number of detecting stations, 
+# split according to the newly create depthcat
+
+station.means <- tapply(quakes$stations, INDEX = quakes$depthcat, FUN = mean)
+station.sds <- tapply(quakes$stations, INDEX = quakes$depthcat, FUN = sd)
+max(station.sds) / min(station.sds)
+```
+```{r}
+station.meancent <- quakes$stations - station.means[as.numeric(quakes$depthcat)]
+qqnorm(station.meancent)
+qqline(station.meancent)
+```
+```{r}
+kruskal.test(quakes$stations~quakes$depthcat)
+```
+```{r}
+head(Cars93)
+```
+```{r}
+# use aggregate to compute the mean length of the 93 cars, split by 
+# AirBags and Man.trans.avail
+
+len.means <- aggregate(Cars93$Length, 
+                       by = list(Cars93$AirBags, Cars93$Man.trans.avail),
+                       FUN = mean)
+len.means
+```
+```{r}
+# does there appear to be an interactive effect of these 2 groups on the 
+# mean length of the cars
+
+interaction.plot(x.factor = len.means[,2], trace.factor = len.means[,1],
+                 response = len.means[,3], trace.label = "AirBags",
+                 xlab = "Manual Transmission Available",
+                 ylab = "mean length")
+```
+```{r}
+summary(aov(Length~AirBags+Man.trans.avail+AirBags:Man.trans.avail, 
+            data = Cars93))
+```
+

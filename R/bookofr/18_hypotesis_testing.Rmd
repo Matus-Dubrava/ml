@@ -1,0 +1,257 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+# cats are said to have average weight of 3.5kg, we perform 73 measurements, the 
+# calculated mean of these measurements is 3.97kg and calculated standard 
+# deviation is 2.21kg
+# perform hypotesis test that the true mean weight is not 3.5kg (using 0.05 
+# significance level)
+
+n.samples <- 73
+null.mean <- 3.5
+sample.mean <- 3.97
+sample.sd <- 2.21
+
+se <- sample.sd / sqrt(n.samples)
+sample.mean.stand <- (sample.mean - null.mean) / se
+
+x <- seq(-5, 5, length.out = 10000)
+dens <- dt(x, df = n.samples - 1)
+plot(x, dens, type = "l")
+abline(v = c(-1, 1) * sample.mean.stand, col = "brown")
+```
+```{r}
+# performing 2-sided t-test 
+(p.val <- 2 * pt(-1 * sample.mean.stand, df = n.samples - 1))
+```
+```{r}
+# it is believed that the mean magnitude of seismic events is 4.3,
+# use quakes dataset to test the claim that the mean magnitude is greater 
+# than 4.3 (conduct the test at significance level of 0.01)
+
+library(datasets)
+head(quakes)
+```
+```{r}
+n.samples <- nrow(quakes)
+null.mean <- 4.3
+
+sample.mean <- mean(quakes$mag)
+sample.sd <- sd(quakes$mag)
+se <- sample.sd / sqrt(n.samples)
+sample.mean.stand <- (sample.mean - null.mean) / se
+
+x <- seq(-5, 26, length.out = 10000)
+dens <- dt(x, df = n.samples - 1)
+plot(x, dens, type = "l")
+abline(v = sample.mean.stand, col = "brown")
+```
+```{r}
+(p.val <- pt(-1 * sample.mean.stand, df = n.samples - 1))
+t.test(x = quakes$mag, mu = 4.3, alternative = "greater", conf.level = 0.01)
+```
+```{r}
+library(MASS)
+head(anorexia)
+```
+```{r}
+# regardless of treatment method, perform hypotesis test that the mean weight
+# of patients increased after the treatment
+
+# H0: ud = 0 (mean difference of before and after is the same)
+# HA: ud > 0 (mean difference has increased)
+
+diffs <- anorexia$Postwt - anorexia$Prewt
+sample.mean <- mean(diffs)
+n.samples <- length(diffs)
+sample.sd <- sd(diffs)
+se <- sample.sd / sqrt(n.samples)
+
+sample.mean.stand <- sample.mean / se
+
+x <- seq(-5, 5, length.out = 10000)
+dens <- dt(x, df = n.samples - 1)
+plot(x, dens, type = "l")
+abline(v = sample.mean.stand, col = "brown")
+```
+```{r}
+(p.val <- 1 - pt(sample.mean.stand, df = n.samples - 1))
+t.test(x = anorexia$Postwt, y = anorexia$Prewt, alternative = "greater",
+       paired = TRUE, var.equal = TRUE)
+```
+```{r}
+# perform 3 separate hypotesis tests based on the treatment group
+levels(anorexia$Treat)
+```
+```{r}
+treat.mask.cont <- anorexia$Treat == "Cont"
+treat.mask.cbt <- anorexia$Treat == "CBT"
+treat.mask.ft <- anorexia$Treat == "FT"
+
+diffs.cont <- anorexia$Postwt[treat.mask.cont] - anorexia$Postwt[treat.mask.cont]
+diffs.cbt <- anorexia$Postwt[treat.mask.cbt] - anorexia$Prewt[treat.mask.cbt]
+diffs.ft <- anorexia$Postwt[treat.mask.ft] - anorexia$Prewt[treat.mask.ft]
+
+cont.n.samples <- nrow(anorexia[treat.mask.cont,])
+cont.mean <- mean(diffs.cont)
+cont.sd <- sd(diffs.cont)
+cont.se <- cont.sd / sqrt(cont.n.samples)
+cont.mean.stand <- 0 # cont.mean / cont.se
+
+cbt.n.samples <- nrow(anorexia[treat.mask.cbt,])
+cbt.mean <- mean(diffs.cbt)
+cbt.sd <- sd(diffs.cbt)
+cbt.se <- cbt.sd / sqrt(cbt.n.samples)
+cbt.mean.stand <- cbt.mean / cbt.se
+
+ft.n.samples <- nrow(anorexia[treat.mask.ft,])
+ft.mean <- mean(diffs.ft)
+ft.sd <- sd(diffs.ft)
+ft.se <- ft.sd / sqrt(ft.n.samples)
+ft.mean.stand <- ft.mean / ft.se
+
+x <- seq(-5, 5, length.out = 10000)
+cont.dens <- dt(x, df = cont.n.samples - 1)
+cbt.dens <- dt(x, df = cbt.n.samples - 1)
+ft.dens <- dt(x, df = ft.n.samples - 1)
+
+par(mfrow = c(1, 3))
+plot(x, cont.dens, type = "l")
+abline(v = cont.mean.stand, col = "brown")
+
+plot(x, cbt.dens, type = "l")
+abline(v = cbt.mean.stand, col = "brown")
+
+plot(x, ft.dens, type = "l")
+abline(v = ft.mean.stand, col = "brown")
+```
+```{r}
+(cont.p.val <- 1 - pt(cont.mean.stand, df = cont.n.samples - 1))
+(cbt.p.val <- 1 - pt(cbt.mean.stand, df = cbt.n.samples - 1))
+(ft.p.val <- 1 - pt(ft.mean.stand, df = ft.n.samples - 1))
+```
+```{r}
+head(PlantGrowth)
+```
+```{r}
+# set up hypotesis test that the mean weight of the control group is 
+# less than the mean weight of plants that received either of the treatments
+
+# is it appropriate to use pooled version of the test?
+# (sd larger / sd smaller <= 2)
+cont.mask <- PlantGrowth$group == "ctrl"
+treat.mask <- PlantGrowth$group != "ctrl"
+
+cont.sd <- sd(PlantGrowth$weight[cont.mask])
+treat.sd <- sd(PlantGrowth$weight[treat.mask])
+max(c(cont.sd, treat.sd)) / min(c(cont.sd, treat.sd))
+
+t.test(x = PlantGrowth$weight[cont.mask], y = PlantGrowth$weight[treat.mask],
+       alternative = "less", paired = FALSE, var.equal = TRUE)
+```
+```{r}
+my.t.test <- function(x, y, paired = FALSE, var.equal = FALSE, ...) {
+  # check whether to set var.equal to TRUE based on the rule of thumb
+  if (paired == FALSE) {
+    sd.dif <- max(c(sd(x), sd(y))) / min(c(sd(x), sd(y)))
+    if (sd.dif <= 2) {
+      warning("setting var.equal to TRUE automatically")
+      var.equal <- TRUE
+    } else {
+      warning("setting var.equal to FALSE automatically")
+      var.equal <- FALSE
+    }
+  }
+  
+  t.test(x = x, y = y, paired = paired, var.equal = var.equal, ...)
+}
+
+my.t.test(x = PlantGrowth$weight[cont.mask], y = PlantGrowth$weight[treat.mask],
+          alternative = "less")
+```
+```{r}
+# proportions testing, assumend proportion of a certain event is 0.2, 
+# given following measurements, test the hypotesis that the proportion is 
+# different from 0.2
+
+observations <- c(0, 0, 1, 1, rep(0, 5), 1, rep(0, 8), 1, rep(0, 3), rep(1, 3),
+                  rep(0, 3), 1)
+null.p <- .2
+sample.p <- mean(observations)
+z.se <- sqrt(null.p * (1 - null.p) / length(observations))
+z <- (sample.p - null.p) / z.se
+
+x <- seq(-5, 5, length.out = 10000)
+dens <- dnorm(x)
+plot(x, dens, type = "l")
+abline(v = z * c(-1, 1), col = "brown")
+polygon(cbind(c(-5, x[x <= z * -1], z * -1),
+              c(0, dens[x <= z * -1], 0)),
+        col = "brown", density = 20)
+polygon(cbind(c(z, x[x >= z], 5),
+              c(0, dens[x >= z], 0)),
+        col = "brown", density = 20)
+
+p.val <- 2 * pnorm(z * -1)
+text(3, 0.1, paste("p-value:", round(p.val, 3)), col = "brown")
+```
+```{r}
+prop.test(x = sum(observations), n = length(observations), p = 0.2,
+          correct = FALSE)
+```
+```{r}
+# assumed proportion of a certain event is 0.9, we collect 89 observations
+# out of which 71 are positive
+
+# is it valid to carry out hypotesis test using normal distribution?
+null.p <- .9
+n.samples <- 89
+null.p * n.samples >= 5 & (1 - null.p) * n.samples >= 5
+```
+```{r}
+# find out the t-statistic and the p-value, conclude the test using 
+# a significance level of 0.1 (testing for true proportion being less
+# than the stated one)
+
+sample.p <- 71/n.samples
+z.se <- sqrt(null.p * (1 - null.p) / n.samples)
+z <- (sample.p - null.p) / z.se
+
+x <- seq(-5, 5, length.out = 10000)
+dens <- dnorm(x)
+plot(x, dens, type = "l")
+abline(v = z, col = "brown")
+polygon(cbind(c(-5, x[x <= z], z),
+              c(0, dens[x <= z], 0)),
+        col = "brown", density = 20)
+
+p.val <- pnorm(z)
+text(-4.3, .1, paste("p-val:", round(p.val, 5)), col = "brown")
+```
+```{r}
+# using the estimated propotion, construct a two-sided 90% confidence 
+# interval for the true proportion 
+
+sample.p + c(-1, 1) * qnorm(0.95) * z.se
+```
+```{r}
+prop.test(x = 71, n = n.samples, p = .9, alternative = "less", correct = FALSE,
+          conf.level = .9)
+```
+```{r}
+# in one state, 97 out of 445 asked agree with decriminalization of marijuana,
+# in some other state, 90 out of 419 agree with the same,
+# conduct a hypotesis test that the proportion of those that agree is 
+# different between these two states
+
+prop.test(x = c(97, 90), n = c(445, 419), alternative = "two.sided", correct = FALSE)
+```
+```{r}
+
+```
+
+
+
+

@@ -1,0 +1,229 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+library(MASS)
+plot(survey$Height~survey$Wr.Hnd)
+```
+```{r}
+cor(survey$Height, survey$Wr.Hnd, use = "complete.obs")
+```
+```{r}
+survfit <- lm(Height~Wr.Hnd, data = survey)
+survfit
+```
+```{r}
+plot(survey$Height~survey$Wr.Hnd)
+abline(survfit, col = "brown")
+```
+```{r}
+summary(survfit)
+```
+```{r}
+confint(survfit)
+```
+```{r}
+rho.xy <- cor(survey$Height, survey$Wr.Hnd, use = "complete.obs")
+rho.xy <- rho.xy ^ 2
+rho.xy
+```
+```{r}
+xvals <- data.frame(Wr.Hnd = c(14.5, 24))
+xvals
+```
+```{r}
+pred.ci <- predict(survfit, xvals, interval = "confidence", level = 0.95)
+pred.ci
+```
+```{r}
+pred.pi <- predict(survfit, xvals, interval = "prediction", level = 0.95)
+pred.pi
+```
+```{r}
+plot(survey$Height~survey$Wr.Hnd, xlim = c(13, 24), ylim = c(140, 205),
+     xlab = "Writing Handspan", ylab = "Height")
+abline(survfit, lwd = 2, col = "brown")
+
+points(xvals[,1], pred.ci[,1], pch = 8, col = "red")
+segments(x0 = c(14.5, 24), y0 = c(pred.pi[1,2], pred.pi[2,2]),
+         x1 = c(14.5, 24), y1 = c(pred.pi[1,3], pred.pi[2,3]),
+         col = "gray", lwd = 3)
+segments(x0 = c(14.5, 24), y0 = c(pred.ci[1,2], pred.ci[2,2]),
+         x1 = c(14.5, 24), y1 = c(pred.ci[1,3], pred.ci[2,3]),
+         lwd = 2)
+x <- data.frame(Wr.Hnd = seq(12, 25, length.out = 1000))
+ci.band <- predict(survfit, x, interval = "confidence", level = 0.95)
+pi.band <- predict(survfit, x, interval = "prediction", level = 0.95)
+lines(x[,1], ci.band[,2], lty = 2, col = "brown")
+lines(x[,1], ci.band[,3], lty = 2, col = "brown")
+lines(x[,1], pi.band[,2], lty = 3, col = "brown")
+lines(x[,1], pi.band[,3], lty = 3, col = "brown")
+legend("topleft", legend = c("Fit", "95% CI", "95% PI"),
+       lty = c(1, 2, 3), col = c("brown", "brown", "brown"),
+       lwd = c(2, 1, 1))
+```
+```{r}
+# continue with the predictions, this time using Pulse as a single 
+# predictor 
+
+lmfit.pulse <- lm(Height~Pulse, data = survey)
+
+plot(survey$Height~survey$Pulse)
+abline(lmfit.pulse, col = "brown", lwd = 2)
+```
+```{r}
+# identify point estimate of the slope, outcome of hypotesis test that
+# slope is non-zero, and confidence interval for the same
+coef(lmfit.pulse)
+summary(lmfit.pulse)$coefficients[2,4] # p-value for slope
+confint(lmfit.pulse)
+```
+```{r}
+# plot confidence and prediction intervals
+
+plot(survey$Height~survey$Pulse, xlim = c(30, 110), ylim = c(140, 210))
+abline(lmfit.pulse, col = "brown", lwd = 2)
+
+x <- data.frame(Pulse <- seq(25, 115, length.out = 1000))
+ci.bound <- predict(lmfit.pulse, x, interval = "confidence", level = 0.9)
+pi.bound <- predict(lmfit.pulse, x, interval = "prediction", level = 0.9)
+
+lines(x[,1], ci.bound[,2], col = "brown", lty = 2)
+lines(x[,1], ci.bound[,3], col = "brown", lty = 2)
+lines(x[,1], pi.bound[,2], col = "brown", lty = 3)
+lines(x[,1], pi.bound[,3], col = "brown", lty = 3)
+legend("topright", legend = c("best fit", "90% CI", "90% PI"),
+       col = rep("brown", 3), lty = c(1, 2, 3), lwd = c(2, 1, 1))
+
+# create incomplete observations vector and use it to compute and plot mean
+# height
+incmplt <- survey[!is.na(survey$Height) & is.na(survey$Pulse), c("Height", "Pulse")]
+incmplt.mean <- mean(incmplt$Height)
+abline(h = incmplt.mean, col = "darkgreen", lwd = 2)
+```
+```{r}
+head(mtcars)
+```
+```{r}
+# plot mpg on wt
+plot(mtcars$mpg~mtcars$wt)
+
+# add a best fit line
+cars.fit <- lm(mpg~wt, data = mtcars)
+abline(cars.fit, col = "brown", lwd = 2)
+
+x <- data.frame(wt = seq(1, 6, length.out = 1000))
+ci.bound <- predict(cars.fit, x, interval = "confidence", level = 0.95)
+pi.bound <- predict(cars.fit, x, interval = "prediction", level = 0.95)
+
+lines(x[,1], ci.bound[,2], col = "brown3", lty = 2, lwd = 2)
+lines(x[,1], ci.bound[,3], col = "brown3", lty = 2, lwd = 2)
+lines(x[,1], pi.bound[,2], col = "brown3", lty = 3, lwd = 2)
+lines(x[,1], pi.bound[,3], col = "brown3", lty = 3, lwd = 2)
+legend("topright", legend = c("best fit", "95% CI", "95% PI"),
+       col = c("brown", "brown3", "brown3"), 
+       lty = c(1, 2, 3), lwd = c(2, 2, 2))
+```
+```{r}
+summary(cars.fit)
+```
+```{r}
+class(survey$Sex)
+table(survey$Sex)
+```
+```{r}
+plot(survey$Height~survey$Sex)
+points(survey$Height~as.numeric(survey$Sex), cex = 0.5)
+
+# mean height according to sex
+means.sex <- tapply(survey$Height, INDEX = survey$Sex, FUN = mean, na.rm = TRUE)
+points(1:2, means.sex, cex = 3, col = "brown", pch = 4)
+```
+```{r}
+survfit.sex <- lm(Height~Sex, data = survey)
+summary(survfit.sex)
+```
+```{r}
+is.factor(survey$Smoke)
+table(survey$Smoke)
+levels(survey$Smoke)
+```
+```{r}
+plot(survey$Height~survey$Smoke)
+height.means <- tapply(survey$Height, INDEX = survey$Smoke, FUN = mean,
+                       na.rm = TRUE)
+points(1:4, height.means, cex = 2, col = "brown", pch = 4)
+```
+```{r}
+survfit.smoke <- lm(Height~Smoke, data = survey)
+summary(survfit.smoke)
+```
+```{r}
+head(survey)
+```
+```{r}
+levels(survey$Exer)
+```
+```{r}
+table(survey$Exer)
+```
+```{r}
+exer.means <- tapply(survey$Height, INDEX = survey$Exer, FUN = mean, 
+                     na.rm = TRUE)
+plot(survey$Height~survey$Exer)
+points(1:3, exer.means, col = "brown", cex = 1.5, pch = 4)
+```
+```{r}
+survfit.exer <- lm(Height~Exer, data = survey)
+summary(survfit.exer)
+```
+```{r}
+xvals <- data.frame(Exer = levels(survey$Exer))
+predict(survfit.exer, xvals, interval = "confidence", level = 0.95)
+```
+```{r}
+surv.exer.anova <- aov(survey$Height~survey$Exer)
+summary(surv.exer.anova)
+```
+```{r}
+survey$Exer <- relevel(survey$Exer, ref = "None")
+summary(aov(survey$Height~survey$Exer))
+```
+```{r}
+survfit.exer <- lm(Height~Exer, data = survey)
+summary(survfit.exer)
+```
+```{r}
+head(mtcars)
+```
+```{r}
+cars.fit <- lm(qsec~gear, data = mtcars)
+summary(cars.fit)
+```
+```{r}
+# turning gear into factor vector 
+mtcars$gear <- as.factor(mtcars$gear)
+cars.fit <- lm(qsec~gear, data = mtcars)
+summary(cars.fit)
+```
+```{r}
+par(mfrow = c(1, 2))
+plot(mtcars$qsec~as.factor(mtcars$gear))
+plot(mtcars$qsec~as.numeric(mtcars$gear))
+
+mtcars$gear <- as.numeric(mtcars$gear)
+cars.fit <- lm(qsec~gear, data = mtcars)
+xvals <- data.frame(gear = c(1, 3))
+pred <- predict(cars.fit, xvals)
+lines(c(1, 3), pred, col = "brown")
+```
+
+
+
+
+
+
+
+
+
