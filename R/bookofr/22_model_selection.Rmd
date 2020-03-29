@@ -1,0 +1,337 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+library(MASS)
+head(survey)
+```
+```{r}
+sur.fit1 <- lm(Height~Wr.Hnd+Sex, data = survey)
+sur.fit2 <- lm(Height~Wr.Hnd+Sex+Smoke, data = survey)
+
+# partial F-test
+anova(sur.fit1, sur.fit2)
+```
+```{r}
+library(faraway)
+head(diabetes)
+```
+```{r}
+diab <- diabetes[-which(is.na(diabetes$age) | is.na(diabetes$frame)),]
+
+diab.model1 <- lm(chol~1, data = diab)
+diab.model2 <- lm(chol~age, data = diab)
+diab.model3 <- lm(chol~age+frame, data = diab)
+diab.model4 <- lm(chol~age*frame, data = diab)
+
+anova(diab.model1, diab.model2, diab.model3, diab.model4)
+```
+```{r}
+library(boot)
+head(nuclear)
+```
+```{r}
+nuc.0 <- lm(cost~1, data = nuclear)
+summary(nuc.0)
+```
+```{r}
+# forward selection
+add1(nuc.0, scope = .~.+date+t1+t2+cap+pr+ne+ct+bw+cum.n+pt, test = "F")
+```
+```{r}
+nuc.1 <- update(nuc.0, formula = .~.+date)
+summary(nuc.1)
+```
+```{r}
+add1(nuc.1, scope = .~.+date+t1+t2+cap+pr+ne+ct+bw+cum.n+pt, test = "F")
+```
+```{r}
+nuc.2 <- update(nuc.1, formula = .~.+cap)
+summary(nuc.2)
+```
+```{r}
+add1(nuc.2, scope = .~.+date+t1+t2+cap+pr+ne+ct+bw+cum.n+pt, test = "F")
+```
+```{r}
+nuc.3 <- update(nuc.2, formula = .~.+pt)
+summary(nuc.3)
+```
+```{r}
+add1(nuc.3, scope = .~.+date+t1+t2+cap+pr+ne+ct+bw+cum.n+pt, test = "F")
+```
+```{r}
+nuc.4 <- update(nuc.3, formula = .~.+ne)
+summary(nuc.4)
+```
+```{r}
+add1(nuc.4, scope = .~.+date+t1+t2+cap+pr+ne+ct+bw+cum.n+pt, test = "F")
+```
+```{r}
+# backward selection
+nuc.0 <- lm(cost~date+t1+t2+cap+pr+ne+ct+bw+cum.n+pt, data = nuclear)
+summary(nuc.0)
+```
+```{r}
+drop1(nuc.0, test = "F")
+```
+```{r}
+nuc.1 <- update(nuc.0, formula = .~.-bw)
+drop1(nuc.1, test = "F")
+```
+```{r}
+nuc.2 <- update(nuc.1, formula = .~.-pt)
+drop1(nuc.2, test = "F")
+```
+```{r}
+nuc.3 <- update(nuc.2, formula = .~.-t1)
+drop1(nuc.3, test = "F")
+```
+```{r}
+nuc.4 <- update(nuc.3, formula = .~.-ct)
+drop1(nuc.4, test = "F")
+```
+```{r}
+summary(nuc.4)
+```
+```{r}
+head(mtcars)
+```
+```{r}
+pairs(mtcars)
+```
+```{r}
+car.null <- lm(mpg~1, data = mtcars)
+car.step <- step(car.null, scope = .~.+wt*hp*factor(cyl)*disp+am+factor(gear)+drat+vs+qsec+carb)
+```
+```{r}
+summary(car.step)
+```
+```{r}
+# find the best model best on AIC steps for predicing price in nuclear dataset
+nuc.null <- lm(cost~1, data = nuclear)
+nuc.step <- step(nuc.null, scope = .~.+date+t1+t2+cap+pr+ne+ct+bw)
+```
+```{r}
+summary(nuc.step)
+```
+```{r}
+head(diabetes)
+```
+```{r}
+diab <- na.omit(diabetes)
+dia.null <- lm(chol~1, data = diab)
+dia.full <- lm(chol~age*gender*weight*frame+waist*height*hip+location, data = diab)
+
+dia.step <- step(dia.null, scope = .~.+age*gender*weight*frame+waist*height*hip+location, data = diab)
+summary(dia.step)
+```
+```{r}
+add1(dia.null, scope = .~.+age*gender*weight*frame+waist*height*hip+location, test = "F")
+```
+```{r}
+dia.1 <- update(dia.null, formula = .~.+age)
+add1(dia.1, scope = .~.+age*gender*weight*frame+waist*height*hip+location, test = "F")
+summary(dia.1)
+```
+```{r}
+dia.step <- step(dia.full)
+```
+```{r}
+summary(dia.step)
+```
+```{r}
+car.null <- lm(I(1/mpg)~1, data = mtcars)
+car.step <- step(car.null, scope = .~.+wt*hp*factor(cyl)*disp+am+factor(gear)+drat+vs+qsec+carb)
+```
+```{r}
+# model diagnostics - car.step
+car.null <- lm(mpg~1, data = mtcars)
+car.step <- step(car.null, scope = .~.+wt*hp*factor(cyl)*disp+am+factor(gear)+drat+vs+qsec+carb)
+```
+```{r}
+summary(car.step)
+```
+```{r}
+plot(car.step, which = 1)
+```
+```{r}
+plot(car.step, which = 3)
+```
+```{r}
+gal <- data.frame(d = c(573, 534, 495, 451, 395, 337, 253),
+                  h = c(1, .8, .6, .45, .3, .2, .1))
+gal.mod1 <- lm(d~h, data = gal)
+gal.mod2 <- lm(d~h+I(h^2), data = gal)
+
+plot(gal$d~gal$h, xlab = "Height", ylab = "Distance")
+abline(gal.mod1)
+```
+```{r}
+plot(gal.mod1, which = 1, id.n = 0)
+```
+```{r}
+plot(gal.mod2, which = 1, id.n = 0)
+```
+```{r}
+plot(car.step, which = 2)
+```
+```{r}
+x <- c(1.1, 1.3, 2.3, 1.6, 1.2, 0.1, 1.8, 1.9, 0.2, 0.75)
+y <- c(6.7, 7.9, 9.8, 9.3, 8.2, 2.9, 6.6, 11.1, 4.7, 3)
+p1x <- 1.2
+p1y <- 14
+p2x <- 5
+p2y <- 19
+p3x <- 5
+p3y <- 5
+
+mod.0 <- lm(y~x)
+mod.1 <- lm(c(y, p1y)~c(x, p1x))
+mod.2 <- lm(c(y, p2y)~c(x, p2x))
+mod.3 <- lm(c(y, p3y)~c(x, p3x))
+
+par(mfrow = c(2, 2))
+plot(x, y, xlim = c(0, 5), ylim = c(0, 20), main = "outlier, low leverage, low influence")
+abline(mod.0)
+abline(mod.1, lty = 2, col = "brown")
+points(p1x, p1y, col = "brown", pch = 15, cex = 1.5)
+
+plot(x, y, xlim = c(0, 5), ylim = c(0, 20), main = "not outlier, high leverage, low influence")
+abline(mod.0)
+abline(mod.2, lty = 2, col = "brown")
+points(p2x, p2y, col = "brown", pch = 15, cex = 1.5)
+
+plot(x, y, xlim = c(0, 5), ylim = c(0, 20), main = "outlier, high leverage, high influence")
+abline(mod.0)
+abline(mod.3, lty = 2, col = "brown")
+points(p3x, p3y, col = "brown", pch = 15, cex = 1.5)
+```
+```{r}
+# leverage 
+# H = X(X^T . X)^-1 . X^T
+X <- cbind(rep(1, 10), x)
+hii <- diag(X %*% solve(t(X) %*% X) %*% t(X)) # same as hatvalues(mod.0)
+plot(hii~x, ylab = "leverage", pch = 4)
+```
+```{r}
+cooks.distance(mod.1)
+```
+```{r}
+par(mfrow = c(1, 3))
+plot(mod.1, which = 4)
+abline(h = 4/11, lty = 2, col = "brown")
+plot(mod.2, which = 4)
+abline(h = 4/11, lty = 2, col = "brown")
+plot(mod.3, which = 4)
+abline(h = 4/11, lty = 2, col = "brown")
+```
+```{r}
+plot(car.step, which = 4)
+abline(h = 4/nrow(mtcars), col = "brown", lty = 2)
+```
+```{r}
+par(mfrow = c(1, 2))
+plot(mod.1, which = 5, add.smooth = FALSE, cook.levels = c(4/11, 0.5, 1))
+plot(mod.1, which = 6, add.smooth = FALSE)
+par(mfrow = c(1, 2))
+plot(mod.2, which = 5, add.smooth = FALSE, cook.levels = c(4/11, 0.5, 1))
+plot(mod.2, which = 6, add.smooth = FALSE)
+par(mfrow = c(1, 2))
+plot(mod.3, which = 5, add.smooth = FALSE, cook.levels = c(4/11, 0.5, 1))
+plot(mod.3, which = 6, add.smooth = FALSE)
+```
+```{r}
+par(mfrow = c(1, 2))
+plot(car.step, which = 5, cook.levels = c(4/nrow(mtcars), .5, 1))
+plot(car.step, which = 6, cook.levels = c(4/nrow(mtcars), .5, 1))
+```
+```{r}
+head(nuclear)
+```
+```{r}
+nuc.fit <- lm(cost~date+cap+pt+ne, data = nuclear)
+summary(nuc.fit)
+```
+```{r}
+plot(nuc.fit)
+```
+```{r}
+plot(nuc.fit, which = 4)
+abline(h = 4/nrow(nuclear), col = "brown", lty = 2)
+```
+```{r}
+plot(nuc.fit, which = 5, cook.levels = c(4/nrow(nuclear), 0.5, 1))
+```
+```{r}
+# removing the offencing point 19
+nuclear.upd <- nuclear[-19,]
+nuc.fit <- lm(cost~date+cap+pt+ne, data = nuclear.upd)
+summary(nuc.fit)
+```
+```{r}
+plot(nuc.fit, which = 4)
+abline(h = 4/nrow(nuclear.upd), col = "brown", lty = 2)
+```
+```{r}
+plot(nuc.fit, which = 5, cook.levels = c(4/nrow(nuclear.upd), .5, 1))
+```
+```{r}
+plot(nuc.fit)
+```
+```{r}
+head(diabetes)
+```
+```{r}
+dia.fit <- lm(chol~age*frame+waist, data = diabetes)
+summary(dia.fit)
+```
+```{r}
+plot(dia.fit)
+```
+```{r}
+n <- nrow(diabetes) - 15
+plot(dia.fit, which = 5, cook.levels = c(4/n, 4/n*3, 4/n*5))
+```
+```{r}
+diam.url <- "http://jse.amstat.org/v9n2/4Cdata.txt"
+diamonds <- read.table(diam.url)
+names(diamonds) <- c("Carat", "Color", "Clarity", "Cert", "Price")
+head(diamonds)
+```
+```{r}
+cols <- c("red", "blue", "green", "black", "orange", "darkgreen")
+plot(diamonds$Price~diamonds$Carat, pch = 20, col = cols[diamonds$Color], main = "price~carat (colors)")
+legend("topleft", legend = levels(diamonds$Color), col = cols, pch = rep(20, 6))
+```
+```{r}
+cols <- c("red", "blue", "green", "black", "orange", "darkgreen")
+plot(diamonds$Price~diamonds$Carat, pch = 20, col = cols[diamonds$Clarity], main = "price~carat (clarity)")
+legend("topleft", legend = levels(diamonds$Clarity), col = cols, pch = rep(20, 6))
+```
+```{r}
+cols <- c("red", "blue", "green", "black", "orange", "darkgreen")
+plot(diamonds$Price~diamonds$Carat, pch = 20, col = cols[diamonds$Cert], main = "price~carat (certification)")
+legend("topleft", legend = levels(diamonds$Cert), col = cols, pch = rep(20, 6))
+```
+```{r}
+diam.fit <- lm(Price~., data = diamonds)
+summary(diam.fit)
+```
+```{r}
+plot(diam.fit)
+```
+```{r}
+n <- 4/nrow(diamonds)
+plot(diam.fit, which = 5, cook.levels = c(n, 3*n, 5*n))
+```
+```{r}
+diam.fit <- lm(log(Price)~., data = diamonds)
+plot(diam.fit)
+```
+```{r}
+diam.fit <- lm(log(Price)~.+I(Carat^2), data = diamonds)
+plot(diam.fit)
+summary(diam.fit)
+```
+
